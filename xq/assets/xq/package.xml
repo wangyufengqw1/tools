@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<packageDescription id="3nar4isu" jpegQuality="80" compressPNG="true">
+  <resources>
+    <component id="pacf0" name="Button1.xml" path="/"/>
+    <component id="pacf1" name="Button2.xml" path="/"/>
+    <component id="pacf2" name="cell.xml" path="/" exported="true"/>
+    <component id="pacf3" name="failItem.xml" path="/"/>
+    <component id="pacf4" name="item.xml" path="/" exported="true"/>
+    <component id="pacf5" name="itemLayer.xml" path="/"/>
+    <component id="pacf6" name="kong.xml" path="/"/>
+    <component id="pacf7" name="mainView.xml" path="/" exported="true"/>
+    <component id="pacf8" name="mainView_ui.xml" path="/"/>
+    <component id="pacf9" name="roleIcon_i.xml" path="/"/>
+    <component id="pacfa" name="roleIcon_y.xml" path="/"/>
+    <component id="pacfb" name="rob.xml" path="/"/>
+    <component id="pacfc" name="showTip.xml" path="/" exported="true"/>
+  </resources>
+  <publish name="xq" path="D:\egret Test\xqTest\resource\assets\xq"/>
+</packageDescription>

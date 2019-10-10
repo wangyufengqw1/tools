@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component size="180,180">
+  <controller name="c1" pages="0,,1," selected="1"/>
+  <displayList>
+    <graph id="n0_ceej" name="n0" xy="0,0" size="180,180" type="rect" lineColor="#ff6699ff" fillColor="#ffe8d1ba">
+      <gearDisplay controller="c1" pages="0"/>
+    </graph>
+    <graph id="n1_ceej" name="n1" xy="0,0" size="180,180" type="rect" lineColor="#ff6699ff" fillColor="#ff00ff00">
+      <gearDisplay controller="c1" pages="1"/>
+    </graph>
+  </displayList>
+  <transition name="t0"/>
+</component>

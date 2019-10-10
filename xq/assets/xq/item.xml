@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component size="150,150">
+  <controller name="c1" pages="0,,1,,2," selected="0"/>
+  <controller name="select" pages="0,,1," selected="0"/>
+  <displayList>
+    <graph id="n33_ceej" name="n33" xy="0,0" pivot="0.5,0.5" size="150,150" type="eclipse" fillColor="#ff333333">
+      <gearDisplay controller="c1" pages="0"/>
+    </graph>
+    <graph id="n34_ceej" name="n34" xy="0,0" size="150,150" type="eclipse" lineColor="#ff33ccff" fillColor="#ff33ccff">
+      <gearDisplay controller="c1" pages="1"/>
+    </graph>
+    <graph id="n35_ceej" name="n35" xy="0,0" size="150,150" type="eclipse" lineColor="#ffff6600" fillColor="#ffff6600">
+      <gearDisplay controller="c1" pages="2"/>
+    </graph>
+    <text id="n36_ceej" name="txt" xy="21,18" size="107,119" fontSize="100" leading="0" bold="true" text="帅">
+      <gearDisplay controller="c1" pages="1,2"/>
+    </text>
+    <graph id="n37_l9cg" name="n37" xy="0,0" size="150,150" type="eclipse" lineSize="10" lineColor="#ff9966ff" fillColor="#00333333">
+      <gearDisplay controller="select" pages="1"/>
+    </graph>
+  </displayList>
+  <transition name="t0">
+    <item time="0" type="Scale" target="n33_ceej" tween="true" startValue="1,1" endValue="0.5,1" duration="3" ease="Linear"/>
+    <item time="3" type="Scale" target="n33_ceej" tween="true" startValue="0.5,1" endValue="0,1" duration="3" ease="Linear"/>
+    <item time="6" type="Scale" target="n33_ceej" tween="true" startValue="0,1" endValue="-0.5,1" duration="3" ease="Linear"/>
+    <item time="9" type="Scale" target="n33_ceej" tween="true" startValue="-0.5,1" endValue="-1,1" duration="3" ease="Linear"/>
+    <item time="12" type="Scale" target="n33_ceej" tween="true" startValue="-1,1" endValue="-0.5,1" duration="3" ease="Linear"/>
+    <item time="15" type="Scale" target="n33_ceej" tween="true" startValue="-0.5,1" endValue="0,1" duration="3" ease="Linear"/>
+    <item time="18" type="Scale" target="n33_ceej" tween="true" startValue="0,1" endValue="0.5,1" duration="3" ease="Linear"/>
+    <item time="21" type="Scale" target="n33_ceej" tween="true" startValue="0.5,1" endValue="1,1" duration="3" ease="Linear"/>
+  </transition>
+</component>

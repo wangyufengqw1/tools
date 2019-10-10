@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component size="100,100">
+  <controller name="c1" pages="0,,1,,2," selected="2"/>
+  <controller name="c2" pages="0,,1," selected="1"/>
+  <controller name="c3" pages="0,,1," selected="0"/>
+  <displayList>
+    <graph id="n61_jdlr" name="n61" xy="0,0" size="100,100" type="eclipse" fillColor="#ff0099ff">
+      <gearDisplay controller="c1" pages="1"/>
+    </graph>
+    <graph id="n62_jdlr" name="n62" xy="0,0" size="100,100" type="eclipse" fillColor="#ffff0000">
+      <gearDisplay controller="c1" pages="2"/>
+    </graph>
+    <text id="n63_jdlr" name="txt0" xy="17,15" size="65,71" fontSize="60" text="兵"/>
+    <text id="n64_jdlr" name="txt1" xy="62,0" size="37,39" fontSize="30" color="#66ff00" bold="true" text="x2">
+      <gearDisplay controller="c2" pages="1"/>
+    </text>
+    <text id="n65_jdlr" name="n65" xy="42,66" size="57,33" fontSize="24" color="#66ff00" bold="true" text="击杀">
+      <gearDisplay controller="c3" pages="1"/>
+    </text>
+  </displayList>
+</component>

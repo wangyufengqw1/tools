@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component size="1080,1920">
+  <displayList>
+    <component id="n1_mli1" name="bg" src="pacf6" fileName="kong.xml" xy="0,0"/>
+    <component id="n0_mli1" name="ui" src="pacf8" fileName="mainView_ui.xml" xy="0,0"/>
+  </displayList>
+</component>

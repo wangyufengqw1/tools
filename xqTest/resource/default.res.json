@@ -1,0 +1,35 @@
+{
+	"groups": [
+		{
+			"keys": "xq,common_atlas0,click_mp3,common",
+			"name": "preload"
+		}
+	],
+	"resources": [
+		{
+			"url": "config/description.json",
+			"type": "json",
+			"name": "description_json"
+		},
+		{
+			"url": "assets/xq/xq.fui",
+			"type": "bin",
+			"name": "xq"
+		},
+		{
+			"url": "assets/common/common.fui",
+			"type": "bin",
+			"name": "common"
+		},
+		{
+			"url": "assets/common/common_atlas0.png",
+			"type": "image",
+			"name": "common_atlas0"
+		},
+		{
+			"url": "assets/common/click.mp3",
+			"type": "sound",
+			"name": "click_mp3"
+		}
+	]
+}

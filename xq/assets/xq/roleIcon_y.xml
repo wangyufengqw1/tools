@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component size="506,100">
+  <displayList>
+    <graph id="n75_lpgp" name="iconKong" xy="0,0" size="100,100" type="eclipse"/>
+    <text id="n76_lpgp" name="txt0" xy="104,2" size="215,39" fontSize="30" text="玩家名字六个字"/>
+    <text id="n77_lpgp" name="txt1" xy="369,1" size="131,39" fontSize="30" autoSize="none" text="30000"/>
+    <text id="n78_lpgp" name="txt2" xy="107,51" size="215,39" fontSize="30" text="玩家名字六个字"/>
+    <text id="n79_lpgp" name="txt3" xy="17,25" size="72,49" fontSize="40" align="center" vAlign="middle" autoSize="none" text="2"/>
+  </displayList>
+</component>

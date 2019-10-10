@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component size="1080,1920">
+  <controller name="c1" alias="玩家显示" pages="0,开始游戏,1,匹配对手,2,抢红界面,3,游戏界面" selected="0"/>
+  <displayList>
+    <component id="n0_ceej" name="cell0" src="pacf2" fileName="cell.xml" xy="180,240"/>
+    <component id="n1_ceej" name="cell1" src="pacf2" fileName="cell.xml" xy="360,240"/>
+    <component id="n2_ceej" name="cell2" src="pacf2" fileName="cell.xml" xy="540,240"/>
+    <component id="n3_ceej" name="cell3" src="pacf2" fileName="cell.xml" xy="720,240"/>
+    <component id="n4_ceej" name="cell4" src="pacf2" fileName="cell.xml" xy="180,420"/>
+    <component id="n5_ceej" name="cell8" src="pacf2" fileName="cell.xml" xy="180,600"/>
+    <component id="n6_ceej" name="cell12" src="pacf2" fileName="cell.xml" xy="180,780"/>
+    <component id="n8_ceej" name="cell24" src="pacf2" fileName="cell.xml" xy="180,1320"/>
+    <component id="n9_ceej" name="cell16" src="pacf2" fileName="cell.xml" xy="180,960"/>
+    <component id="n10_ceej" name="cell28" src="pacf2" fileName="cell.xml" xy="180,1500"/>
+    <component id="n11_ceej" name="cell20" src="pacf2" fileName="cell.xml" xy="180,1140"/>
+    <component id="n12_ceej" name="cell5" src="pacf2" fileName="cell.xml" xy="360,420"/>
+    <component id="n13_ceej" name="cell9" src="pacf2" fileName="cell.xml" xy="360,600"/>
+    <component id="n14_ceej" name="cell13" src="pacf2" fileName="cell.xml" xy="360,780"/>
+    <component id="n15_ceej" name="cell25" src="pacf2" fileName="cell.xml" xy="360,1320"/>
+    <component id="n16_ceej" name="cell17" src="pacf2" fileName="cell.xml" xy="360,960"/>
+    <component id="n17_ceej" name="cell29" src="pacf2" fileName="cell.xml" xy="360,1500"/>
+    <component id="n18_ceej" name="cell21" src="pacf2" fileName="cell.xml" xy="360,1140"/>
+    <component id="n19_ceej" name="cell6" src="pacf2" fileName="cell.xml" xy="540,420"/>
+    <component id="n20_ceej" name="cell10" src="pacf2" fileName="cell.xml" xy="540,600"/>
+    <component id="n21_ceej" name="cell14" src="pacf2" fileName="cell.xml" xy="540,780"/>
+    <component id="n22_ceej" name="cell26" src="pacf2" fileName="cell.xml" xy="540,1320"/>
+    <component id="n23_ceej" name="cell18" src="pacf2" fileName="cell.xml" xy="540,960"/>
+    <component id="n24_ceej" name="cell30" src="pacf2" fileName="cell.xml" xy="540,1500"/>
+    <component id="n25_ceej" name="cell22" src="pacf2" fileName="cell.xml" xy="540,1140"/>
+    <component id="n26_ceej" name="cell7" src="pacf2" fileName="cell.xml" xy="720,420"/>
+    <component id="n27_ceej" name="cell11" src="pacf2" fileName="cell.xml" xy="720,600"/>
+    <component id="n28_ceej" name="cell15" src="pacf2" fileName="cell.xml" xy="720,780"/>
+    <component id="n29_ceej" name="cell27" src="pacf2" fileName="cell.xml" xy="720,1320"/>
+    <component id="n30_ceej" name="cell19" src="pacf2" fileName="cell.xml" xy="720,960"/>
+    <component id="n31_ceej" name="cell31" src="pacf2" fileName="cell.xml" xy="720,1500"/>
+    <component id="n32_ceej" name="cell23" src="pacf2" fileName="cell.xml" xy="720,1140"/>
+    <component id="n61_jdlr" name="failItem0" src="pacf3" fileName="failItem.xml" xy="28,240">
+      <gearDisplay controller="c1" pages="3"/>
+    </component>
+    <component id="n62_jdlr" name="failItem1" src="pacf3" fileName="failItem.xml" xy="28,350">
+      <gearDisplay controller="c1" pages="3"/>
+    </component>
+    <component id="n63_jdlr" name="failItem2" src="pacf3" fileName="failItem.xml" xy="28,460">
+      <gearDisplay controller="c1" pages="3"/>
+    </component>
+    <component id="n64_jdlr" name="failItem3" src="pacf3" fileName="failItem.xml" xy="28,570">
+      <gearDisplay controller="c1" pages="3"/>
+    </component>
+    <component id="n65_jdlr" name="failItem4" src="pacf3" fileName="failItem.xml" xy="28,680">
+      <gearDisplay controller="c1" pages="3"/>
+    </component>
+    <component id="n66_jdlr" name="failItem5" src="pacf3" fileName="failItem.xml" xy="28,790">
+      <gearDisplay controller="c1" pages="3"/>
+    </component>
+    <component id="n67_jdlr" name="failItem6" src="pacf3" fileName="failItem.xml" xy="28,900">
+      <gearDisplay controller="c1" pages="3"/>
+    </component>
+    <component id="n68_jdlr" name="failItem7" src="pacf3" fileName="failItem.xml" xy="938,906">
+      <gearDisplay controller="c1" pages="3"/>
+    </component>
+    <component id="n69_jdlr" name="failItem8" src="pacf3" fileName="failItem.xml" xy="938,1016">
+      <gearDisplay controller="c1" pages="3"/>
+    </component>
+    <component id="n70_jdlr" name="failItem9" src="pacf3" fileName="failItem.xml" xy="938,1126">
+      <gearDisplay controller="c1" pages="3"/>
+    </component>
+    <component id="n71_jdlr" name="failItem10" src="pacf3" fileName="failItem.xml" xy="938,1236">
+      <gearDisplay controller="c1" pages="3"/>
+    </component>
+    <component id="n72_jdlr" name="failItem11" src="pacf3" fileName="failItem.xml" xy="938,1346">
+      <gearDisplay controller="c1" pages="3"/>
+    </component>
+    <component id="n73_jdlr" name="failItem12" src="pacf3" fileName="failItem.xml" xy="938,1456">
+      <gearDisplay controller="c1" pages="3"/>
+    </component>
+    <component id="n74_jdlr" name="failItem13" src="pacf3" fileName="failItem.xml" xy="938,1566">
+      <gearDisplay controller="c1" pages="3"/>
+    </component>
+    <component id="n35_jdlr" name="itemLayer" src="pacf5" fileName="itemLayer.xml" xy="0,0" size="200,100">
+      <gearDisplay controller="c1" pages="2,3"/>
+    </component>
+    <component id="n75_lpgp" name="icon0" src="pacf9" fileName="roleIcon_i.xml" xy="512,1760"/>
+    <component id="n77_lpgp" name="icon1" src="pacfa" fileName="roleIcon_y.xml" xy="32,24">
+      <gearDisplay controller="c1" pages="2,3"/>
+    </component>
+    <component id="n78_lpgp" name="btn2" src="pacf0" fileName="Button1.xml" xy="44,1776"/>
+    <component id="n79_lpgp" name="btn3" src="pacf0" fileName="Button1.xml" xy="172,1776">
+      <gearDisplay controller="c1" pages="2,3"/>
+    </component>
+    <component id="n81_lpgp" name="btn1" src="pacf1" fileName="Button2.xml" xy="440,1178">
+      <gearDisplay controller="c1" pages="0"/>
+    </component>
+    <text id="n82_lpgp" name="n82" xy="364,924" size="356,71" fontSize="60" text="匹配对手中...">
+      <gearDisplay controller="c1" pages="1"/>
+    </text>
+    <text id="n83_lpgp" name="txt" xy="872,40" size="152,71" fontSize="60" autoSize="none" text="20&#xA;">
+      <gearDisplay controller="c1" pages="2,3"/>
+    </text>
+    <component id="n84_lpgp" name="robView" src="pacfb" fileName="rob.xml" xy="0,0">
+      <gearDisplay controller="c1" pages="2"/>
+    </component>
+    <text id="n85_cuzi" name="n85" xy="402,724" size="252,106" fontSize="12" autoSize="none" text=""/>
+    <component id="n89_cuzi" name="skyLayer" src="pacf5" fileName="itemLayer.xml" xy="0,0" size="200,100"/>
+  </displayList>
+</component>

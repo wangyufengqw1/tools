@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component size="260,100">
+  <displayList>
+    <graph id="n86_cuzi" name="n86" xy="0,0" size="260,100" type="rect"/>
+    <text id="n88_cuzi" name="txt" xy="10,14" size="125,71" fontSize="60" color="#ff0000" text="抢红"/>
+  </displayList>
+</component>
