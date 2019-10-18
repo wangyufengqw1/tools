@@ -241,6 +241,7 @@ var GameEvent = (function () {
     GameEvent.connect = "connect"; //连接网络
     GameEvent.diaoxian = "diaoxian"; //后台询问是否掉线
     GameEvent.weihu = "weihu"; //维护
+    GameEvent.loginTrue = "loginTrue"; //登录成功
     /***********前端********** */
     GameEvent.web_closeDoor = "closeDoor"; //关闭
     return GameEvent;

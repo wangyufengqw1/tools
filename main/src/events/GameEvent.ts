@@ -50,7 +50,7 @@ class GameEvent {
 	static connect         : string = "connect";                    //连接网络
 	static diaoxian  	   : string = "diaoxian";       //后台询问是否掉线
 	static weihu           : string = "weihu";                      //维护
-
+	static loginTrue       : string = "loginTrue";                  //登录成功
 
 
 

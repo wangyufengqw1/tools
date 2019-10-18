@@ -110,6 +110,7 @@ declare class GameEvent {
     static connect: string;
     static diaoxian: string;
     static weihu: string;
+    static loginTrue: string;
     /***********前端********** */
     static web_closeDoor: string;
 }
