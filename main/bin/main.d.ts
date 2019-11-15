@@ -12,32 +12,179 @@ declare class LoadViewBase extends loadUI.BaseLoadingUI {
      */
     setProgress(current: number, total: number): void;
 }
-declare module base {
-    class BaseAlert extends gui.OvBase {
-        private _message;
-        private _button;
-        private _callback;
-        static OK: number;
-        static CANCEL: number;
-        static OK_CANCEL: number;
-        constructor(res: string, name: string, message: string, button?: number, callback?: (...args) => void, context?: any, ...args: any[]);
-        private btn;
-        private bar;
-        private txt;
-        private select;
-        protected initView(): void;
-        protected onClick(e: egret.TouchEvent): void;
-        dispose(): void;
-    }
-    class FunctionInfo {
-        fun: string | ((...args) => any);
-        context: any;
-        args: any[];
-        sleep: boolean;
-        dispose(): void;
-        call(): void;
-        onceCall(): void;
-    }
+declare class PublicAPi {
+    constructor();
+    /**
+     * 全局监听的消息
+     */
+    private initEvent();
+    /**
+     *  弹窗显示
+     */
+    private isTanChuang(str);
+    /**
+     * 后端掉线询问
+     */
+    private diaoxian();
+    /**
+     * 掉线通知
+     */
+    private kickoutF(data);
+    private regedEvebt;
+    /**
+    * 后端消息接听初始化
+    */
+    private eventInit();
+    /**
+     * 消息移除
+     */
+    private eventRemove();
+    private gameEvebt;
+    /**
+     * 添加后端消息监控
+     */
+    addGameEvebt(name: string, k: string, _fun: Function, arg: any): void;
+    /**
+     * 游戏初始化
+     */
+    gameEvebtInit(name: string): void;
+    /**
+     * 移除游戏中的消息
+     */
+    removeGameEvbt(name: string): void;
+    private allRemoveEvbt();
+    dispose(): void;
+    /**
+     * 替换名字
+     */
+    changeName(str: string): string;
+    /**
+    * 替换名字
+    */
+    changeMoney(num: number): string;
+    /**
+     * 交换位置 a是需要的 b是替换的
+     */
+    sweepChangeCom(a: fairygui.GComponent, b: fairygui.GComponent): void;
+    /**
+     * 登录界面继续游戏
+     */
+    contineGame(data: any): void;
+    /**
+     * 播放该物件下的所有动画
+     */
+    playAllMc(value: fairygui.GComponent, callBack?: CallBackVo): void;
+    /**
+     * 播放动画
+     */
+    playMc(value: fairygui.GComponent, callBack?: CallBackVo): void;
+    comebackDoor(): void;
+    /**
+    * 公告显示
+    */
+    doorTipShow(str: string): string;
+    /**
+     * 将玩家的信息排在第一位
+     */
+    firstMyInfomation(value: any): any;
+    soundFirst: boolean;
+    isOnlie: number;
+    isRelease: boolean;
+    openModule: string;
+    openStr: string;
+    /************************************************这个是热门区域*********************************************************/
+    myId: number[];
+    nameArr: string[];
+    mcArr: number[];
+    pNum: string[];
+}
+declare class commonBtn extends fairygui.GButton {
+    constructor();
+    constructFromResource(): void;
+    /**
+     * 图片显示
+     */
+    myId(num: number): void;
+    getMyId(): number;
+    private _myId;
+    setMcShow(num: number): void;
+    /**
+     * 我的名字
+     */
+    myName(str: string): void;
+    pNum(str: string): void;
+    wx(str: string): void;
+    private imgLoadHandler(texture, url);
+    private kong;
+    private _txt;
+    private mc;
+    private imag;
+}
+declare class headIcon extends fairygui.GComponent {
+    private imag;
+    constructor(_icon: fairygui.GObject, setXy?: boolean);
+    /**
+     * 头像编号
+     */
+    private _myid;
+    myId: number;
+    private imgLoadHandler(texture, url);
+    clean(): void;
+}
+declare class IconItem extends fairygui.GComponent {
+    private mainView;
+    private c1;
+    private _icon;
+    private imag;
+    constructor();
+    constructFromResource(): void;
+    /**
+     * 头像编号
+     */
+    private _myid;
+    myId: number;
+    private imgLoadHandler(texture, url);
+    choose(v: boolean): void;
+}
+declare class IconSprite extends fairygui.GComponent {
+    private mainView;
+    private c1;
+    private _icon;
+    private imag;
+    static ONCLICK: string;
+    constructor(value: fairygui.GComponent);
+    private itemClick(e);
+    /**
+     * 头像编号
+     */
+    private _myid;
+    myId: number;
+    private imgLoadHandler(texture, url);
+    choose(v: boolean): void;
+}
+declare class BaseConfig<T> {
+    private _$clazz;
+    private _$name;
+    private _$id;
+    dic: any;
+    constructor(clazz: any, id: string);
+    /**
+     * 初始化数据
+     */
+    dataSource: string;
+    /**
+     * 解析文本
+     */
+    private analyseTxt(data);
+    /**
+     * 数据解析
+     */
+    private mapData(fields, data, item);
+    private isNum(s);
+    /**
+     * 获取类型数据
+     */
+    getTypeData(key: any): T;
 }
 declare class CallBackVo {
     handeler: Function;
@@ -111,6 +258,10 @@ declare class GameEvent {
     static diaoxian: string;
     static weihu: string;
     static loginTrue: string;
+    static CMD_HF: string;
+    static fenghao: string;
+    static Yijianfankui: string;
+    static istanchuang: string;
     /***********前端********** */
     static web_closeDoor: string;
 }
@@ -240,63 +391,32 @@ declare module api {
         setOpenId(value: string): void;
     }
 }
-declare class PublicAPi {
+declare class btnItem extends fairygui.GButton {
     constructor();
+    constructFromResource(): void;
     /**
-     * 全局监听的消息
+     * 图片显示
      */
-    private initEvent();
+    myId(num: number): void;
+    getMyId(): number;
+    private _myId;
     /**
-     * 后端掉线询问
+     * 招牌显示
      */
-    private diaoxian();
+    setTipShow(num: number): void;
+    setMcShow(num: number): void;
     /**
-     * 掉线通知
+     * 我的名字
      */
-    private kickoutF(data);
-    private regedEvebt;
-    /**
-    * 后端消息接听初始化
-    */
-    private eventInit();
-    /**
-     * 消息移除
-     */
-    private eventRemove();
-    private gameEvebt;
-    /**
-     * 添加后端消息监控
-     */
-    addGameEvebt(name: string, k: string, _fun: Function, arg: any): void;
-    /**
-     * 游戏初始化
-     */
-    gameEvebtInit(name: string): void;
-    /**
-     * 移除游戏中的消息
-     */
-    removeGameEvbt(name: string): void;
-    private allRemoveEvbt();
-    dispose(): void;
-    /**
-     * 替换名字
-     */
-    changeName(str: string): string;
-    /**
-     * 登录界面继续游戏
-     */
-    contineGame(data: any): void;
-    /**
-     * 播放该物件下的所有动画
-     */
-    playAllMc(value: fairygui.GComponent, callBack?: CallBackVo): void;
-    /**
-     * 播放动画
-     */
-    playMc(value: fairygui.GComponent, callBack?: CallBackVo): void;
-    comebackDoor(): void;
-    isOnlie: number;
-    isRelease: boolean;
+    myName(str: string): void;
+    pNum(str: string): void;
+    wx(str: string): void;
+    private imgLoadHandler(texture, url);
+    private kong;
+    private _txt;
+    private tipShow;
+    private mc;
+    private imag;
 }
 declare class SoundManagers {
     /**
@@ -395,29 +515,32 @@ declare class Main extends egret.DisplayObjectContainer {
     constructor();
     private onAddToStage(event);
 }
-declare class BaseConfig<T> {
-    private _$clazz;
-    private _$name;
-    private _$id;
-    dic: any;
-    constructor(clazz: any, id: string);
-    /**
-     * 初始化数据
-     */
-    dataSource: string;
-    /**
-     * 解析文本
-     */
-    private analyseTxt(data);
-    /**
-     * 数据解析
-     */
-    private mapData(fields, data, item);
-    private isNum(s);
-    /**
-     * 获取类型数据
-     */
-    getTypeData(key: any): T;
+declare module base {
+    class BaseAlert extends gui.OvBase {
+        private _message;
+        private _button;
+        private _callback;
+        static OK: number;
+        static CANCEL: number;
+        static OK_CANCEL: number;
+        constructor(res: string, name: string, message: string, button?: number, callback?: (...args) => void, context?: any, ...args: any[]);
+        private btn;
+        private bar;
+        private txt;
+        private select;
+        protected initView(): void;
+        protected onClick(e: egret.TouchEvent): void;
+        dispose(): void;
+    }
+    class FunctionInfo {
+        fun: string | ((...args) => any);
+        context: any;
+        args: any[];
+        sleep: boolean;
+        dispose(): void;
+        call(): void;
+        onceCall(): void;
+    }
 }
 declare module base {
     class BaseModule extends egret.EventDispatcher {
@@ -650,33 +773,6 @@ declare module timeUtils {
     }
     const time: TimeUtils;
 }
-declare class btnItem extends fairygui.GButton {
-    constructor();
-    constructFromResource(): void;
-    /**
-     * 图片显示
-     */
-    myId(num: number): void;
-    getMyId(): number;
-    private _myId;
-    /**
-     * 招牌显示
-     */
-    setTipShow(num: number): void;
-    setMcShow(num: number): void;
-    /**
-     * 我的名字
-     */
-    myName(str: string): void;
-    pNum(str: string): void;
-    wx(str: string): void;
-    private imgLoadHandler(texture, url);
-    private kong;
-    private _txt;
-    private tipShow;
-    private mc;
-    private imag;
-}
 declare class DoorView extends gui.OvBase {
     constructor();
     dispose(): void;
@@ -759,48 +855,6 @@ declare class DoorView extends gui.OvBase {
     private _dataFlag;
     private inRoomBack(data);
     private remove();
-}
-declare class headIcon extends fairygui.GComponent {
-    private imag;
-    constructor(_icon: fairygui.GObject, setXy?: boolean);
-    /**
-     * 头像编号
-     */
-    private _myid;
-    myId: number;
-    private imgLoadHandler(texture, url);
-    clean(): void;
-}
-declare class IconItem extends fairygui.GComponent {
-    private mainView;
-    private c1;
-    private _icon;
-    private imag;
-    constructor();
-    constructFromResource(): void;
-    /**
-     * 头像编号
-     */
-    private _myid;
-    myId: number;
-    private imgLoadHandler(texture, url);
-    choose(v: boolean): void;
-}
-declare class IconSprite extends fairygui.GComponent {
-    private mainView;
-    private c1;
-    private _icon;
-    private imag;
-    static ONCLICK: string;
-    constructor(value: fairygui.GComponent);
-    private itemClick(e);
-    /**
-     * 头像编号
-     */
-    private _myid;
-    myId: number;
-    private imgLoadHandler(texture, url);
-    choose(v: boolean): void;
 }
 declare class IconView {
     constructor(v: fairygui.GComponent, myIcon: headIcon);

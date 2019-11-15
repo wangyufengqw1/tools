@@ -51,7 +51,10 @@ class GameEvent {
 	static diaoxian  	   : string = "diaoxian";       //后台询问是否掉线
 	static weihu           : string = "weihu";                      //维护
 	static loginTrue       : string = "loginTrue";                  //登录成功
-
+	static CMD_HF          : string = "hengfu";                     //横幅
+	static fenghao         : string = "fenghao";                    //横幅
+	static Yijianfankui    : string = "miniGame.Yijianfankui";      //意见反馈
+	static istanchuang     : string = "istanchuang";                //弹窗
 
 
 	/***********前端********** */

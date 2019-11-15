@@ -32,107 +32,595 @@ var LoadViewBase = (function (_super) {
     return LoadViewBase;
 }(loadUI.BaseLoadingUI));
 __reflect(LoadViewBase.prototype, "LoadViewBase");
-var base;
-(function (base) {
-    var BaseAlert = (function (_super) {
-        __extends(BaseAlert, _super);
-        function BaseAlert(res, name, message, button, callback, context) {
-            if (button === void 0) { button = 1; }
-            if (callback === void 0) { callback = null; }
-            if (context === void 0) { context = null; }
-            var args = [];
-            for (var _i = 6; _i < arguments.length; _i++) {
-                args[_i - 6] = arguments[_i];
-            }
-            var _this = _super.call(this, res, name) || this;
-            _this._message = message;
-            _this._button = button;
-            if (callback != null) {
-                _this._callback = gameTool.poolList.getInstance(FunctionInfo);
-                _this._callback.sleep = false;
-                _this._callback.fun = callback;
-                _this._callback.context = context;
-                _this._callback.args = args;
-            }
-            if (_this.txt) {
-                _this.txt.text = _this._message;
-            }
-            return _this;
+var PublicAPi = (function () {
+    function PublicAPi() {
+        /************************************************这个是热门区域*********************************************************/
+        this.myId = [0, 1, 3, 2, 6, 4, 5, 99];
+        this.nameArr = ["幸运福袋", "欢乐钓鱼", "大圣偷桃", "扫雷", "暗棋争霸", "飞刀挑战", "闯三关", "敬请期待"];
+        this.mcArr = [0, 1, 3, 2, 4, 1, 1, 4]; //mc对应的颜色  
+        this.gameEvebt = {};
+        this.regedEvebt = {};
+        this.initEvent();
+    }
+    /**
+     * 全局监听的消息
+     */
+    PublicAPi.prototype.initEvent = function () {
+        this.regedEvebt[GameEvent.kickout] = this.kickoutF.bind(this);
+        //      this.regedEvebt[GameEvent.xiantao] = this.xiantao.bind(this);
+        this.regedEvebt[GameEvent.diaoxian] = this.diaoxian.bind(this);
+        this.regedEvebt[GameEvent.istanchuang] = this.isTanChuang.bind(this);
+        this.eventInit();
+    };
+    /**
+     *  弹窗显示
+     */
+    PublicAPi.prototype.isTanChuang = function (str) {
+        this.openStr = str;
+        notification.postNotification(GameEvent.istanchuang); //发送弹窗推送
+    };
+    /**
+     * 后端掉线询问
+     */
+    PublicAPi.prototype.diaoxian = function () {
+        api.GlobalAPI.webSocket.request(GameEvent.Getdiaoxianjiance, {});
+    };
+    // /**
+    //  * 仙桃  全服仙桃推送
+    //  */
+    // private xiantao(str:string):void
+    // {
+    //     let item  = gameTool.poolList.getInstance(TipShowForAll,gameTool.stage.width,gameTool.stage.height/10,str);
+    //     gui.addGComponentToStage(item,define.WindowType.TIP_LAYER);
+    // }
+    /**
+     * 掉线通知
+     */
+    PublicAPi.prototype.kickoutF = function (data) {
+        if (data == "账户已失效，请重新连接") {
+            api.GlobalAPI.publicApi.isOnlie = 4;
+            this.eventRemove();
+            api.createAlert(data, 1, function (type) {
+                gui.removeAllView();
+            });
         }
-        BaseAlert.prototype.initView = function () {
-            this.txt = this.getTextField("txt");
-            this.select = this._ui.getController("select");
-            if (this._button == BaseAlert.OK) {
-                this.select.selectedPage = "1";
+        else if (data == "网络已断，请重新连接") {
+            api.GlobalAPI.publicApi.isOnlie = 3;
+            api.createAlert(data, 3);
+        }
+    };
+    /**
+    * 后端消息接听初始化
+    */
+    PublicAPi.prototype.eventInit = function () {
+        if (this.regedEvebt != null) {
+            for (var o in this.regedEvebt) {
+                api.GlobalAPI.webSocket.on(o, this.regedEvebt[o]);
+            }
+        }
+    };
+    /**
+     * 消息移除
+     */
+    PublicAPi.prototype.eventRemove = function () {
+        if (this.regedEvebt != null) {
+            for (var o in this.regedEvebt) {
+                api.GlobalAPI.webSocket.off(o, this.regedEvebt[o]);
+            }
+        }
+    };
+    /**
+     * 添加后端消息监控
+     */
+    PublicAPi.prototype.addGameEvebt = function (name, k, _fun, arg) {
+        if (this.gameEvebt[name] == null) {
+            this.gameEvebt[name] = [];
+        }
+        this.gameEvebt[name][k] = _fun.bind(arg);
+    };
+    /**
+     * 游戏初始化
+     */
+    PublicAPi.prototype.gameEvebtInit = function (name) {
+        if (this.gameEvebt[name] != null) {
+            for (var o in this.gameEvebt[name]) {
+                api.GlobalAPI.webSocket.on(o, this.gameEvebt[name][o]);
+            }
+        }
+    };
+    /**
+     * 移除游戏中的消息
+     */
+    PublicAPi.prototype.removeGameEvbt = function (name) {
+        if (this.gameEvebt[name] != null) {
+            for (var o in this.gameEvebt[name]) {
+                api.GlobalAPI.webSocket.off(o, this.gameEvebt[name][o]);
+            }
+        }
+    };
+    PublicAPi.prototype.allRemoveEvbt = function () {
+        for (var name in this.gameEvebt) {
+            for (var o in this.gameEvebt[name]) {
+                api.GlobalAPI.webSocket.off(o, this.gameEvebt[name][o]);
+            }
+        }
+    };
+    PublicAPi.prototype.dispose = function () {
+        this.allRemoveEvbt();
+        this.eventRemove();
+        this.regedEvebt = null;
+        this.gameEvebt = null;
+    };
+    /**
+     * 替换名字
+     */
+    PublicAPi.prototype.changeName = function (str) {
+        var name = "";
+        var len = str.length;
+        for (var i = 0; i < len; i++) {
+            if (i == Math.floor(len / 2 - 1) || i == Math.floor(len / 2) || i == Math.floor(len / 2 + 1)) {
+                name += "*";
             }
             else {
-                this.select.selectedPage = "2";
+                name += str.charAt(i);
             }
-            this.txt.text = this._message;
-        };
-        BaseAlert.prototype.onClick = function (e) {
-            switch (e.currentTarget.name) {
-                case "closeButton":
-                case "cannel":
-                    if (this._callback != null) {
-                        this._callback.args = [BaseAlert.CANCEL].concat(this._callback.args);
-                        this._callback.call();
-                    }
-                    this.dispose();
-                    break;
-                case "ok1":
-                case "ok0":
-                    if (this._callback != null) {
-                        this._callback.args = [BaseAlert.OK].concat(this._callback.args);
-                        this._callback.call();
-                    }
-                    this.dispose();
-                    break;
-            }
-        };
-        BaseAlert.prototype.dispose = function () {
-            if (this._callback != null) {
-                gameTool.poolList.remove(this._callback);
-                this._callback = null;
-            }
-            _super.prototype.dispose.call(this);
-        };
-        BaseAlert.OK = 1;
-        BaseAlert.CANCEL = 2;
-        BaseAlert.OK_CANCEL = 3;
-        return BaseAlert;
-    }(gui.OvBase));
-    base.BaseAlert = BaseAlert;
-    __reflect(BaseAlert.prototype, "base.BaseAlert");
-    var FunctionInfo = (function () {
-        function FunctionInfo() {
         }
-        FunctionInfo.prototype.dispose = function () {
-            this.fun = null;
-            this.context = null;
-            this.args = null;
-        };
-        FunctionInfo.prototype.call = function () {
-            if (this.sleep) {
+        return name;
+    };
+    /**
+    * 替换名字
+    */
+    PublicAPi.prototype.changeMoney = function (num) {
+        var atr = "";
+        var str = num.toString();
+        for (var x = 0; x < str.length; x++) {
+            atr += str.charAt(x);
+            if ((str.length - x) % 3 == 1 && x != str.length - 1) {
+                atr += ",";
+            }
+        }
+        return atr;
+    };
+    /**
+     * 交换位置 a是需要的 b是替换的
+     */
+    PublicAPi.prototype.sweepChangeCom = function (a, b) {
+        a.x = b.x;
+        a.y = b.y;
+        if (b.parent) {
+            var index = b.parent.getChildIndex(b);
+            b.parent.addChildAt(a, index);
+            b.parent.removeChild(b);
+            b = null;
+        }
+    };
+    /**
+     * 登录界面继续游戏
+     */
+    PublicAPi.prototype.contineGame = function (data) {
+        switch (data["which"]) {
+            case 1://红包
+                api.GlobalAPI.moduleManager.openModule("redProject");
+                //     changeBackground(1,1);
+                gameTool.stage.setContentSize(1920, 1080);
+                gameTool.stage.orientation = egret.OrientationMode.LANDSCAPE;
+                break;
+            case 4://扫雷
+                //      changeBackground(1,1);
+                gameTool.stage.orientation = egret.OrientationMode.LANDSCAPE;
+                gameTool.stage.setContentSize(1920, 1080);
+                api.GlobalAPI.moduleManager.openModule("sweepGame");
+                break;
+            case 5://大圣
+                //      changeBackground(3,1);
+                api.GlobalAPI.moduleManager.openModule("gzHero");
+                break;
+            case 6://飞刀
+                //     changeBackground(4,1);
+                api.GlobalAPI.moduleManager.openModule("feidao");
+                break;
+        }
+    };
+    /**
+     * 播放该物件下的所有动画
+     */
+    PublicAPi.prototype.playAllMc = function (value, callBack) {
+        if (callBack === void 0) { callBack = null; }
+        var callBackBoolean = false; //只用其中一个动画来回调
+        for (var i = 0; i < value.numChildren; i++) {
+            var sp = value.getChildAt(i);
+            if (sp instanceof fairygui.GComponent) {
+                if (sp.getTransition("t0")) {
+                    if (!callBackBoolean && callBack != null) {
+                        callBackBoolean = true;
+                        sp.getTransition("t0").play(function () {
+                            callBack.apply();
+                        }, this);
+                    }
+                    else {
+                        sp.getTransition("t0").play();
+                    }
+                }
+            }
+        }
+    };
+    /**
+     * 播放动画
+     */
+    PublicAPi.prototype.playMc = function (value, callBack) {
+        if (callBack === void 0) { callBack = null; }
+        if (value.getTransition("t0")) {
+            if (callBack != null) {
+                value.getTransition("t0").play(function () {
+                    callBack.apply();
+                }, this);
+            }
+            else {
+                value.getTransition("t0").play();
+            }
+        }
+    };
+    PublicAPi.prototype.comebackDoor = function () {
+        if (isPc()) {
+            gui.addScene(PcDoorView);
+        }
+        else {
+            gui.addScene(DoorView);
+        }
+    };
+    /**
+    * 公告显示
+    */
+    PublicAPi.prototype.doorTipShow = function (str) {
+        var restr = "<font color='#E5522E'>[公告]</font> 恭喜";
+        var strs = str.split("-");
+        restr += "<font color='#F7C538'>" + this.changeName(strs[1]) + "</font>" + "在";
+        restr += "<font color='#E5522E'>" + strs[0] + strs[2] + "</font>";
+        // for(let i : number = 0;i<strs.length-1;i++){
+        //     restr+=strs[i];
+        // }
+        //如果最后一个字符串为""; 则获取皮肤
+        if (strs[strs.length - 1] == "") {
+            restr += "<font color='#F7C538'>获取皮肤</font>";
+        }
+        else {
+            restr += "获得<font color='#F7C538'>" + strs[strs.length - 1] + "金币</font>";
+        }
+        return restr;
+    };
+    /**
+     * 将玩家的信息排在第一位
+     */
+    PublicAPi.prototype.firstMyInfomation = function (value) {
+        if (value && value.length > 0) {
+            var t;
+            for (var i = 0; i < value.length; i++) {
+                if (value[i]["open_id"] == api.GlobalAPI.userData.getOpenId()) {
+                    t = value[i];
+                    value[i] = value[0];
+                    value[0] = t;
+                }
+            }
+        }
+        return value;
+    };
+    return PublicAPi;
+}());
+__reflect(PublicAPi.prototype, "PublicAPi");
+var commonBtn = (function (_super) {
+    __extends(commonBtn, _super);
+    function commonBtn() {
+        return _super.call(this) || this;
+    }
+    commonBtn.prototype.constructFromResource = function () {
+        _super.prototype.constructFromResource.call(this);
+        this._txt = [];
+        this.kong = this.getChild("kong").asCom;
+        this._txt.push(this.getChild("txt0").asTextField);
+        this._txt.push(this.getChild("txt1").asTextField);
+        //		this._txt.push(this.getChild("txt2").asTextField);
+        this.mc = this.getChild("mc").asCom;
+        this.imag = new fairygui.GImage();
+    };
+    /**
+     * 图片显示
+     */
+    commonBtn.prototype.myId = function (num) {
+        this._myId = num;
+        RES.getResByUrl("resource/assets/icon/" + (num + 100).toString() + ".png", this.imgLoadHandler, this, RES.ResourceItem.TYPE_IMAGE);
+    };
+    commonBtn.prototype.getMyId = function () {
+        return this._myId + 1;
+    };
+    commonBtn.prototype.setMcShow = function (num) {
+        this.mc.getController("c1").setSelectedIndex(num);
+    };
+    /**
+     * 我的名字
+     */
+    commonBtn.prototype.myName = function (str) {
+        this._txt[0].text = str.toString();
+    };
+    commonBtn.prototype.pNum = function (str) {
+        if (str == "") {
+            this._txt[1].text = "";
+        }
+        else {
+            this._txt[1].text = str + "人在玩";
+        }
+    };
+    commonBtn.prototype.wx = function (str) {
+        this._txt[1].text = str.toString();
+    };
+    commonBtn.prototype.imgLoadHandler = function (texture, url) {
+        this.imag.texture = texture;
+        this.kong.addChild(this.imag);
+    };
+    return commonBtn;
+}(fairygui.GButton));
+__reflect(commonBtn.prototype, "commonBtn");
+var headIcon = (function (_super) {
+    __extends(headIcon, _super);
+    function headIcon(_icon, setXy) {
+        if (setXy === void 0) { setXy = false; }
+        var _this = _super.call(this) || this;
+        _this.mask = _icon.displayObject;
+        _this.width = _icon.width;
+        _this.height = _icon.height;
+        _this._myid = -1;
+        if (setXy) {
+            _this.x = _icon.x;
+            _this.y = _icon.y;
+        }
+        return _this;
+    }
+    Object.defineProperty(headIcon.prototype, "myId", {
+        get: function () {
+            return this._myid;
+        },
+        set: function (value) {
+            if (value == 0) {
+                value = 1;
+            }
+            if (value == this._myid && this.imag != null) {
+                //相同编号不用再次加载
                 return;
             }
-            if (typeof this.fun == "string") {
-                this.context[this.fun] = this.args ? this.args[0] : null;
+            if (this.imag) {
+                if (this.imag.parent) {
+                    this.imag.parent.removeChild(this.imag);
+                }
+                this.imag = null;
+            }
+            this.imag = this.imag = new fairygui.GImage();
+            this.addChild(this.imag);
+            this._myid = value;
+            RES.getResByUrl("resource/assets/icon/" + value.toString() + ".jpg", this.imgLoadHandler, this, RES.ResourceItem.TYPE_IMAGE);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    headIcon.prototype.imgLoadHandler = function (texture, url) {
+        this.imag.texture = texture;
+        this.imag.width = this.width + 10;
+        this.imag.height = this.height + 10;
+        this.imag.x = -5;
+        this.imag.y = -5;
+    };
+    headIcon.prototype.clean = function () {
+        if (this.imag) {
+            if (this.imag.parent) {
+                this.imag.parent.removeChild(this.imag);
+            }
+            this.imag = null;
+        }
+    };
+    return headIcon;
+}(fairygui.GComponent));
+__reflect(headIcon.prototype, "headIcon");
+var IconItem = (function (_super) {
+    __extends(IconItem, _super);
+    function IconItem() {
+        return _super.call(this) || this;
+    }
+    IconItem.prototype.constructFromResource = function () {
+        _super.prototype.constructFromResource.call(this);
+        this.c1 = this.getController("c1");
+        this._icon = this.getChild("icon");
+        this._myid = -1;
+        this.imag = new egret.Bitmap();
+    };
+    Object.defineProperty(IconItem.prototype, "myId", {
+        get: function () {
+            return this._myid;
+        },
+        set: function (value) {
+            if (value == this._myid) {
+                //相同编号不用再次加载
+                return;
+            }
+            this._myid = value;
+            RES.getResByUrl("resource/assets/icon/" + value.toString() + ".jpg", this.imgLoadHandler, this, RES.ResourceItem.TYPE_IMAGE);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    IconItem.prototype.imgLoadHandler = function (texture, url) {
+        this.imag.texture = texture;
+        this.displayObject.addChild(this.imag);
+        this.imag.width = this.width + 10;
+        this.imag.height = this.height + 10;
+        this.imag.x = -5;
+        this.imag.y = -5;
+        this.imag.mask = this._icon.displayObject;
+    };
+    IconItem.prototype.choose = function (v) {
+        if (v) {
+            this.c1.setSelectedIndex(1);
+        }
+        else {
+            this.c1.setSelectedIndex(0);
+        }
+    };
+    return IconItem;
+}(fairygui.GComponent));
+__reflect(IconItem.prototype, "IconItem");
+var IconSprite = (function (_super) {
+    __extends(IconSprite, _super);
+    function IconSprite(value) {
+        var _this = _super.call(this) || this;
+        _this.mainView = value;
+        _this.c1 = _this.mainView.getController("c1");
+        _this._icon = _this.mainView.getChild("icon");
+        _this._myid = -1;
+        _this.imag = new egret.Bitmap();
+        _this.mainView.addEventListener(egret.TouchEvent.TOUCH_TAP, _this.itemClick, _this);
+        return _this;
+    }
+    IconSprite.prototype.itemClick = function (e) {
+        this.dispatchEvent(new egret.Event(IconSprite.ONCLICK));
+    };
+    Object.defineProperty(IconSprite.prototype, "myId", {
+        get: function () {
+            return this._myid;
+        },
+        set: function (value) {
+            if (value == this._myid) {
+                //相同编号不用再次加载
+                return;
+            }
+            this._myid = value;
+            RES.getResByUrl("resource/assets/icon/" + value.toString() + ".jpg", this.imgLoadHandler, this, RES.ResourceItem.TYPE_IMAGE);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    IconSprite.prototype.imgLoadHandler = function (texture, url) {
+        this.imag.texture = texture;
+        this.mainView.displayObject.addChild(this.imag);
+        this.imag.x = this._icon.x;
+        this.imag.y = this._icon.y;
+        this.imag.mask = this._icon.displayObject;
+    };
+    IconSprite.prototype.choose = function (v) {
+        if (v) {
+            this.c1.setSelectedIndex(1);
+        }
+        else {
+            this.c1.setSelectedIndex(0);
+        }
+    };
+    IconSprite.ONCLICK = "onClikc";
+    return IconSprite;
+}(fairygui.GComponent));
+__reflect(IconSprite.prototype, "IconSprite");
+var BaseConfig = (function () {
+    function BaseConfig(clazz, id) {
+        this._$clazz = clazz;
+        this._$id = id;
+        this.dic = [];
+    }
+    Object.defineProperty(BaseConfig.prototype, "dataSource", {
+        /**
+         * 初始化数据
+         */
+        set: function (value) {
+            this._$name = this._$clazz.toString();
+            this.analyseTxt(value);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    /**
+     * 解析文本
+     */
+    BaseConfig.prototype.analyseTxt = function (data) {
+        if (!data) {
+            console.error("数据读取失败", this._$name);
+        }
+        var datas = data.split(/\r?\n/);
+        var fields = {};
+        var idBoolean = false;
+        datas[1].split("\t").forEach(function (value, index) {
+            if (value.length <= 0 || value.charAt(0) == "#") {
+                return;
+            }
+            if (this._$id == value) {
+                idBoolean = true;
+            }
+            fields[value] = index;
+        }, this);
+        // if(idBoolean){
+        // 	console.error("没有唯一标识",this._$name);	
+        // }
+        datas.splice(0, 2);
+        var result = {};
+        for (var i = 0; i < datas.length; i++) {
+            var item = new this._$clazz();
+            item = this.mapData(fields, datas[i].split('\t'), item);
+            result[item[this._$id]] = item;
+        }
+        this.dic = result;
+    };
+    /**
+     * 数据解析
+     */
+    BaseConfig.prototype.mapData = function (fields, data, item) {
+        var obj = {};
+        for (var k in fields) {
+            var va = data[fields[k]]; //读取信息
+            // 解析成列表
+            if (k.search("List$") != -1) {
+                var temp = [];
+                if (va.length > 0) {
+                    va = va.split(';'); //里面的内容用;区分
+                    for (var index = 0; index < va.length; index++) {
+                        var value = va[index];
+                        if (this.isNum(value)) {
+                            value = Number(value);
+                        }
+                        temp.push(value);
+                    }
+                }
+                va = temp;
             }
             else {
-                this.fun.apply(this.context, this.args);
+                if (this.isNum(va)) {
+                    va = Number(va);
+                }
+                else if (va == "False" || va == "false") {
+                    va = false;
+                }
+                else if (va == "True" || va == "true") {
+                    va = true;
+                }
             }
-        };
-        FunctionInfo.prototype.onceCall = function () {
-            this.call();
-            gameTool.poolList.remove(this);
-            this.dispose();
-        };
-        return FunctionInfo;
-    }());
-    base.FunctionInfo = FunctionInfo;
-    __reflect(FunctionInfo.prototype, "base.FunctionInfo");
-})(base || (base = {}));
+            item[k] = va;
+        }
+        return item;
+    };
+    BaseConfig.prototype.isNum = function (s) {
+        if (typeof s == 'number')
+            return true;
+        if (typeof s != 'string')
+            return false;
+        if (s != null) {
+            var r = void 0, re = void 0;
+            re = /-?\d*\.?\d*/i; //\d表示数字,*表示匹配多个数字
+            r = s.match(re);
+            return (r == s) ? true : false;
+        }
+        return false;
+    };
+    /**
+     * 获取类型数据
+     */
+    BaseConfig.prototype.getTypeData = function (key) {
+        return this.dic[key];
+    };
+    return BaseConfig;
+}());
+__reflect(BaseConfig.prototype, "BaseConfig");
 var CallBackVo = (function () {
     function CallBackVo(_handler, _thisObj) {
         if (_handler === void 0) { _handler = null; }
@@ -242,6 +730,10 @@ var GameEvent = (function () {
     GameEvent.diaoxian = "diaoxian"; //后台询问是否掉线
     GameEvent.weihu = "weihu"; //维护
     GameEvent.loginTrue = "loginTrue"; //登录成功
+    GameEvent.CMD_HF = "hengfu"; //横幅
+    GameEvent.fenghao = "fenghao"; //横幅
+    GameEvent.Yijianfankui = "miniGame.Yijianfankui"; //意见反馈
+    GameEvent.istanchuang = "istanchuang"; //弹窗
     /***********前端********** */
     GameEvent.web_closeDoor = "closeDoor"; //关闭
     return GameEvent;
@@ -732,206 +1224,64 @@ var api;
     api.UserData = UserData;
     __reflect(UserData.prototype, "api.UserData", ["api.IUserData"]);
 })(api || (api = {}));
-var PublicAPi = (function () {
-    function PublicAPi() {
-        this.gameEvebt = {};
-        this.regedEvebt = {};
-        this.initEvent();
+var btnItem = (function (_super) {
+    __extends(btnItem, _super);
+    function btnItem() {
+        return _super.call(this) || this;
     }
+    btnItem.prototype.constructFromResource = function () {
+        _super.prototype.constructFromResource.call(this);
+        this._txt = [];
+        this.kong = this.getChild("kong").asCom;
+        this._txt.push(this.getChild("txt0").asTextField);
+        this._txt.push(this.getChild("txt1").asTextField);
+        this.tipShow = this.getChild("tipShow").asCom;
+        this.mc = this.getChild("mc").asCom;
+        this.imag = new fairygui.GImage();
+    };
     /**
-     * 全局监听的消息
+     * 图片显示
      */
-    PublicAPi.prototype.initEvent = function () {
-        this.regedEvebt[GameEvent.kickout] = this.kickoutF.bind(this);
-        //      this.regedEvebt[GameEvent.xiantao] = this.xiantao.bind(this);
-        this.regedEvebt[GameEvent.diaoxian] = this.diaoxian.bind(this);
-        this.eventInit();
+    btnItem.prototype.myId = function (num) {
+        this._myId = num;
+        RES.getResByUrl("resource/assets/icon/" + (num + 100).toString() + ".png", this.imgLoadHandler, this, RES.ResourceItem.TYPE_IMAGE);
+    };
+    btnItem.prototype.getMyId = function () {
+        return this._myId + 1;
     };
     /**
-     * 后端掉线询问
+     * 招牌显示
      */
-    PublicAPi.prototype.diaoxian = function () {
-        api.GlobalAPI.webSocket.request(GameEvent.Getdiaoxianjiance, {});
+    btnItem.prototype.setTipShow = function (num) {
+        this.tipShow.getController("c1").setSelectedIndex(num);
     };
-    // /**
-    //  * 仙桃  全服仙桃推送
-    //  */
-    // private xiantao(str:string):void
-    // {
-    //     let item  = gameTool.poolList.getInstance(TipShowForAll,gameTool.stage.width,gameTool.stage.height/10,str);
-    //     gui.addGComponentToStage(item,define.WindowType.TIP_LAYER);
-    // }
+    btnItem.prototype.setMcShow = function (num) {
+        this.mc.getController("c1").setSelectedIndex(num);
+    };
     /**
-     * 掉线通知
+     * 我的名字
      */
-    PublicAPi.prototype.kickoutF = function (data) {
-        if (data == "账户已失效，请重新连接") {
-            api.GlobalAPI.publicApi.isOnlie = 4;
-            this.eventRemove();
-            api.createAlert(data, 1, function (type) {
-                gui.removeAllView();
-            });
-        }
-        else if (data == "网络已断，请重新连接") {
-            api.GlobalAPI.publicApi.isOnlie = 3;
-            api.createAlert(data, 3);
-        }
+    btnItem.prototype.myName = function (str) {
+        this._txt[0].text = str.toString();
     };
-    /**
-    * 后端消息接听初始化
-    */
-    PublicAPi.prototype.eventInit = function () {
-        if (this.regedEvebt != null) {
-            for (var o in this.regedEvebt) {
-                api.GlobalAPI.webSocket.on(o, this.regedEvebt[o]);
-            }
-        }
-    };
-    /**
-     * 消息移除
-     */
-    PublicAPi.prototype.eventRemove = function () {
-        if (this.regedEvebt != null) {
-            for (var o in this.regedEvebt) {
-                api.GlobalAPI.webSocket.off(o, this.regedEvebt[o]);
-            }
-        }
-    };
-    /**
-     * 添加后端消息监控
-     */
-    PublicAPi.prototype.addGameEvebt = function (name, k, _fun, arg) {
-        if (this.gameEvebt[name] == null) {
-            this.gameEvebt[name] = [];
-        }
-        this.gameEvebt[name][k] = _fun.bind(arg);
-    };
-    /**
-     * 游戏初始化
-     */
-    PublicAPi.prototype.gameEvebtInit = function (name) {
-        if (this.gameEvebt[name] != null) {
-            for (var o in this.gameEvebt[name]) {
-                api.GlobalAPI.webSocket.on(o, this.gameEvebt[name][o]);
-            }
-        }
-    };
-    /**
-     * 移除游戏中的消息
-     */
-    PublicAPi.prototype.removeGameEvbt = function (name) {
-        if (this.gameEvebt[name] != null) {
-            for (var o in this.gameEvebt[name]) {
-                api.GlobalAPI.webSocket.off(o, this.gameEvebt[name][o]);
-            }
-        }
-    };
-    PublicAPi.prototype.allRemoveEvbt = function () {
-        for (var name in this.gameEvebt) {
-            for (var o in this.gameEvebt[name]) {
-                api.GlobalAPI.webSocket.off(o, this.gameEvebt[name][o]);
-            }
-        }
-    };
-    PublicAPi.prototype.dispose = function () {
-        this.allRemoveEvbt();
-        this.eventRemove();
-        this.regedEvebt = null;
-        this.gameEvebt = null;
-    };
-    /**
-     * 替换名字
-     */
-    PublicAPi.prototype.changeName = function (str) {
-        var name = "";
-        var len = str.length;
-        for (var i = 0; i < len; i++) {
-            if (i == Math.floor(len / 2 - 1) || i == Math.floor(len / 2) || i == Math.floor(len / 2 + 1)) {
-                name += "*";
-            }
-            else {
-                name += str.charAt(i);
-            }
-        }
-        return name;
-    };
-    /**
-     * 登录界面继续游戏
-     */
-    PublicAPi.prototype.contineGame = function (data) {
-        switch (data["which"]) {
-            case 1://红包
-                api.GlobalAPI.moduleManager.openModule("redProject");
-                //     changeBackground(1,1);
-                gameTool.stage.setContentSize(1920, 1080);
-                gameTool.stage.orientation = egret.OrientationMode.LANDSCAPE;
-                break;
-            case 4://扫雷
-                //      changeBackground(1,1);
-                gameTool.stage.orientation = egret.OrientationMode.LANDSCAPE;
-                gameTool.stage.setContentSize(1920, 1080);
-                api.GlobalAPI.moduleManager.openModule("sweepGame");
-                break;
-            case 5://大圣
-                //      changeBackground(3,1);
-                api.GlobalAPI.moduleManager.openModule("gzHero");
-                break;
-            case 6://飞刀
-                //     changeBackground(4,1);
-                api.GlobalAPI.moduleManager.openModule("feidao");
-                break;
-        }
-    };
-    /**
-     * 播放该物件下的所有动画
-     */
-    PublicAPi.prototype.playAllMc = function (value, callBack) {
-        if (callBack === void 0) { callBack = null; }
-        var callBackBoolean = false; //只用其中一个动画来回调
-        for (var i = 0; i < value.numChildren; i++) {
-            var sp = value.getChildAt(i);
-            if (sp instanceof fairygui.GComponent) {
-                if (sp.getTransition("t0")) {
-                    if (!callBackBoolean && callBack != null) {
-                        callBackBoolean = true;
-                        sp.getTransition("t0").play(function () {
-                            callBack.apply();
-                        }, this);
-                    }
-                    else {
-                        sp.getTransition("t0").play();
-                    }
-                }
-            }
-        }
-    };
-    /**
-     * 播放动画
-     */
-    PublicAPi.prototype.playMc = function (value, callBack) {
-        if (callBack === void 0) { callBack = null; }
-        if (value.getTransition("t0")) {
-            if (callBack != null) {
-                value.getTransition("t0").play(function () {
-                    callBack.apply();
-                }, this);
-            }
-            else {
-                value.getTransition("t0").play();
-            }
-        }
-    };
-    PublicAPi.prototype.comebackDoor = function () {
-        if (isPc()) {
-            gui.addScene(PcDoorView);
+    btnItem.prototype.pNum = function (str) {
+        if (str == "") {
+            this._txt[1].text = "";
         }
         else {
-            gui.addScene(DoorView);
+            this._txt[1].text = str + "人在玩";
         }
     };
-    return PublicAPi;
-}());
-__reflect(PublicAPi.prototype, "PublicAPi");
+    btnItem.prototype.wx = function (str) {
+        this._txt[1].text = str.toString();
+    };
+    btnItem.prototype.imgLoadHandler = function (texture, url) {
+        this.imag.texture = texture;
+        this.kong.addChild(this.imag);
+    };
+    return btnItem;
+}(fairygui.GButton));
+__reflect(btnItem.prototype, "btnItem");
 var SoundManagers = (function () {
     function SoundManagers(stage) {
         /**
@@ -1241,113 +1591,107 @@ var Main = (function (_super) {
     return Main;
 }(egret.DisplayObjectContainer));
 __reflect(Main.prototype, "Main");
-var BaseConfig = (function () {
-    function BaseConfig(clazz, id) {
-        this._$clazz = clazz;
-        this._$id = id;
-        this.dic = [];
-    }
-    Object.defineProperty(BaseConfig.prototype, "dataSource", {
-        /**
-         * 初始化数据
-         */
-        set: function (value) {
-            this._$name = this._$clazz.toString();
-            this.analyseTxt(value);
-        },
-        enumerable: true,
-        configurable: true
-    });
-    /**
-     * 解析文本
-     */
-    BaseConfig.prototype.analyseTxt = function (data) {
-        if (!data) {
-            console.error("数据读取失败", this._$name);
-        }
-        var datas = data.split(/\r?\n/);
-        var fields = {};
-        var idBoolean = false;
-        datas[1].split("\t").forEach(function (value, index) {
-            if (value.length <= 0 || value.charAt(0) == "#") {
-                return;
+var base;
+(function (base) {
+    var BaseAlert = (function (_super) {
+        __extends(BaseAlert, _super);
+        function BaseAlert(res, name, message, button, callback, context) {
+            if (button === void 0) { button = 1; }
+            if (callback === void 0) { callback = null; }
+            if (context === void 0) { context = null; }
+            var args = [];
+            for (var _i = 6; _i < arguments.length; _i++) {
+                args[_i - 6] = arguments[_i];
             }
-            if (this._$id == value) {
-                idBoolean = true;
+            var _this = _super.call(this, res, name) || this;
+            _this._message = message;
+            _this._button = button;
+            if (callback != null) {
+                _this._callback = gameTool.poolList.getInstance(FunctionInfo);
+                _this._callback.sleep = false;
+                _this._callback.fun = callback;
+                _this._callback.context = context;
+                _this._callback.args = args;
             }
-            fields[value] = index;
-        }, this);
-        // if(idBoolean){
-        // 	console.error("没有唯一标识",this._$name);	
-        // }
-        datas.splice(0, 2);
-        var result = {};
-        for (var i = 0; i < datas.length; i++) {
-            var item = new this._$clazz();
-            item = this.mapData(fields, datas[i].split('\t'), item);
-            result[item[this._$id]] = item;
+            if (_this.txt) {
+                _this.txt.text = _this._message;
+            }
+            return _this;
         }
-        this.dic = result;
-    };
-    /**
-     * 数据解析
-     */
-    BaseConfig.prototype.mapData = function (fields, data, item) {
-        var obj = {};
-        for (var k in fields) {
-            var va = data[fields[k]]; //读取信息
-            // 解析成列表
-            if (k.search("List$") != -1) {
-                var temp = [];
-                if (va.length > 0) {
-                    va = va.split(';'); //里面的内容用;区分
-                    for (var index = 0; index < va.length; index++) {
-                        var value = va[index];
-                        if (this.isNum(value)) {
-                            value = Number(value);
-                        }
-                        temp.push(value);
-                    }
-                }
-                va = temp;
+        BaseAlert.prototype.initView = function () {
+            this.txt = this.getTextField("txt");
+            this.select = this._ui.getController("select");
+            if (this._button == BaseAlert.OK) {
+                this.select.selectedPage = "1";
             }
             else {
-                if (this.isNum(va)) {
-                    va = Number(va);
-                }
-                else if (va == "False" || va == "false") {
-                    va = false;
-                }
-                else if (va == "True" || va == "true") {
-                    va = true;
-                }
+                this.select.selectedPage = "2";
             }
-            item[k] = va;
+            this.txt.text = this._message;
+        };
+        BaseAlert.prototype.onClick = function (e) {
+            switch (e.currentTarget.name) {
+                case "closeButton":
+                case "cannel":
+                    if (this._callback != null) {
+                        this._callback.args = [BaseAlert.CANCEL].concat(this._callback.args);
+                        this._callback.call();
+                    }
+                    this.dispose();
+                    break;
+                case "ok1":
+                case "ok0":
+                    if (this._callback != null) {
+                        this._callback.args = [BaseAlert.OK].concat(this._callback.args);
+                        this._callback.call();
+                    }
+                    this.dispose();
+                    break;
+            }
+        };
+        BaseAlert.prototype.dispose = function () {
+            if (this._callback != null) {
+                gameTool.poolList.remove(this._callback);
+                this._callback = null;
+            }
+            _super.prototype.dispose.call(this);
+        };
+        BaseAlert.OK = 1;
+        BaseAlert.CANCEL = 2;
+        BaseAlert.OK_CANCEL = 3;
+        return BaseAlert;
+    }(gui.OvBase));
+    base.BaseAlert = BaseAlert;
+    __reflect(BaseAlert.prototype, "base.BaseAlert");
+    var FunctionInfo = (function () {
+        function FunctionInfo() {
         }
-        return item;
-    };
-    BaseConfig.prototype.isNum = function (s) {
-        if (typeof s == 'number')
-            return true;
-        if (typeof s != 'string')
-            return false;
-        if (s != null) {
-            var r = void 0, re = void 0;
-            re = /-?\d*\.?\d*/i; //\d表示数字,*表示匹配多个数字
-            r = s.match(re);
-            return (r == s) ? true : false;
-        }
-        return false;
-    };
-    /**
-     * 获取类型数据
-     */
-    BaseConfig.prototype.getTypeData = function (key) {
-        return this.dic[key];
-    };
-    return BaseConfig;
-}());
-__reflect(BaseConfig.prototype, "BaseConfig");
+        FunctionInfo.prototype.dispose = function () {
+            this.fun = null;
+            this.context = null;
+            this.args = null;
+        };
+        FunctionInfo.prototype.call = function () {
+            if (this.sleep) {
+                return;
+            }
+            if (typeof this.fun == "string") {
+                this.context[this.fun] = this.args ? this.args[0] : null;
+            }
+            else {
+                this.fun.apply(this.context, this.args);
+            }
+        };
+        FunctionInfo.prototype.onceCall = function () {
+            this.call();
+            gameTool.poolList.remove(this);
+            this.dispose();
+        };
+        return FunctionInfo;
+    }());
+    base.FunctionInfo = FunctionInfo;
+    __reflect(FunctionInfo.prototype, "base.FunctionInfo");
+})(base || (base = {}));
 var base;
 (function (base) {
     var BaseModule = (function (_super) {
@@ -2287,64 +2631,6 @@ var timeUtils;
     __reflect(TimeUtils.prototype, "timeUtils.TimeUtils");
     timeUtils.time = new TimeUtils();
 })(timeUtils || (timeUtils = {}));
-var btnItem = (function (_super) {
-    __extends(btnItem, _super);
-    function btnItem() {
-        return _super.call(this) || this;
-    }
-    btnItem.prototype.constructFromResource = function () {
-        _super.prototype.constructFromResource.call(this);
-        this._txt = [];
-        this.kong = this.getChild("kong").asCom;
-        this._txt.push(this.getChild("txt0").asTextField);
-        this._txt.push(this.getChild("txt1").asTextField);
-        this.tipShow = this.getChild("tipShow").asCom;
-        this.mc = this.getChild("mc").asCom;
-        this.imag = new fairygui.GImage();
-    };
-    /**
-     * 图片显示
-     */
-    btnItem.prototype.myId = function (num) {
-        this._myId = num;
-        RES.getResByUrl("resource/assets/icon/" + (num + 100).toString() + ".png", this.imgLoadHandler, this, RES.ResourceItem.TYPE_IMAGE);
-    };
-    btnItem.prototype.getMyId = function () {
-        return this._myId + 1;
-    };
-    /**
-     * 招牌显示
-     */
-    btnItem.prototype.setTipShow = function (num) {
-        this.tipShow.getController("c1").setSelectedIndex(num);
-    };
-    btnItem.prototype.setMcShow = function (num) {
-        this.mc.getController("c1").setSelectedIndex(num);
-    };
-    /**
-     * 我的名字
-     */
-    btnItem.prototype.myName = function (str) {
-        this._txt[0].text = str.toString();
-    };
-    btnItem.prototype.pNum = function (str) {
-        if (str == "") {
-            this._txt[1].text = "";
-        }
-        else {
-            this._txt[1].text = str + "人在玩";
-        }
-    };
-    btnItem.prototype.wx = function (str) {
-        this._txt[1].text = str.toString();
-    };
-    btnItem.prototype.imgLoadHandler = function (texture, url) {
-        this.imag.texture = texture;
-        this.kong.addChild(this.imag);
-    };
-    return btnItem;
-}(fairygui.GButton));
-__reflect(btnItem.prototype, "btnItem");
 var DoorView = (function (_super) {
     __extends(DoorView, _super);
     function DoorView() {
@@ -2760,161 +3046,6 @@ var DoorView = (function (_super) {
     return DoorView;
 }(gui.OvBase));
 __reflect(DoorView.prototype, "DoorView");
-var headIcon = (function (_super) {
-    __extends(headIcon, _super);
-    function headIcon(_icon, setXy) {
-        if (setXy === void 0) { setXy = false; }
-        var _this = _super.call(this) || this;
-        _this.mask = _icon.displayObject;
-        _this.width = _icon.width;
-        _this.height = _icon.height;
-        _this._myid = -1;
-        if (setXy) {
-            _this.x = _icon.x;
-            _this.y = _icon.y;
-        }
-        return _this;
-    }
-    Object.defineProperty(headIcon.prototype, "myId", {
-        get: function () {
-            return this._myid;
-        },
-        set: function (value) {
-            if (value == 0) {
-                value = 1;
-            }
-            if (value == this._myid && this.imag != null) {
-                //相同编号不用再次加载
-                return;
-            }
-            if (this.imag) {
-                if (this.imag.parent) {
-                    this.imag.parent.removeChild(this.imag);
-                }
-                this.imag = null;
-            }
-            this.imag = this.imag = new fairygui.GImage();
-            this.addChild(this.imag);
-            this._myid = value;
-            RES.getResByUrl("resource/assets/icon/" + value.toString() + ".jpg", this.imgLoadHandler, this, RES.ResourceItem.TYPE_IMAGE);
-        },
-        enumerable: true,
-        configurable: true
-    });
-    headIcon.prototype.imgLoadHandler = function (texture, url) {
-        this.imag.texture = texture;
-        this.imag.width = this.width + 10;
-        this.imag.height = this.height + 10;
-        this.imag.x = -5;
-        this.imag.y = -5;
-    };
-    headIcon.prototype.clean = function () {
-        if (this.imag) {
-            if (this.imag.parent) {
-                this.imag.parent.removeChild(this.imag);
-            }
-            this.imag = null;
-        }
-    };
-    return headIcon;
-}(fairygui.GComponent));
-__reflect(headIcon.prototype, "headIcon");
-var IconItem = (function (_super) {
-    __extends(IconItem, _super);
-    function IconItem() {
-        return _super.call(this) || this;
-    }
-    IconItem.prototype.constructFromResource = function () {
-        _super.prototype.constructFromResource.call(this);
-        this.c1 = this.getController("c1");
-        this._icon = this.getChild("icon");
-        this._myid = -1;
-        this.imag = new egret.Bitmap();
-    };
-    Object.defineProperty(IconItem.prototype, "myId", {
-        get: function () {
-            return this._myid;
-        },
-        set: function (value) {
-            if (value == this._myid) {
-                //相同编号不用再次加载
-                return;
-            }
-            this._myid = value;
-            RES.getResByUrl("resource/assets/icon/" + value.toString() + ".jpg", this.imgLoadHandler, this, RES.ResourceItem.TYPE_IMAGE);
-        },
-        enumerable: true,
-        configurable: true
-    });
-    IconItem.prototype.imgLoadHandler = function (texture, url) {
-        this.imag.texture = texture;
-        this.displayObject.addChild(this.imag);
-        this.imag.width = this.width + 10;
-        this.imag.height = this.height + 10;
-        this.imag.x = -5;
-        this.imag.y = -5;
-        this.imag.mask = this._icon.displayObject;
-    };
-    IconItem.prototype.choose = function (v) {
-        if (v) {
-            this.c1.setSelectedIndex(1);
-        }
-        else {
-            this.c1.setSelectedIndex(0);
-        }
-    };
-    return IconItem;
-}(fairygui.GComponent));
-__reflect(IconItem.prototype, "IconItem");
-var IconSprite = (function (_super) {
-    __extends(IconSprite, _super);
-    function IconSprite(value) {
-        var _this = _super.call(this) || this;
-        _this.mainView = value;
-        _this.c1 = _this.mainView.getController("c1");
-        _this._icon = _this.mainView.getChild("icon");
-        _this._myid = -1;
-        _this.imag = new egret.Bitmap();
-        _this.mainView.addEventListener(egret.TouchEvent.TOUCH_TAP, _this.itemClick, _this);
-        return _this;
-    }
-    IconSprite.prototype.itemClick = function (e) {
-        this.dispatchEvent(new egret.Event(IconSprite.ONCLICK));
-    };
-    Object.defineProperty(IconSprite.prototype, "myId", {
-        get: function () {
-            return this._myid;
-        },
-        set: function (value) {
-            if (value == this._myid) {
-                //相同编号不用再次加载
-                return;
-            }
-            this._myid = value;
-            RES.getResByUrl("resource/assets/icon/" + value.toString() + ".jpg", this.imgLoadHandler, this, RES.ResourceItem.TYPE_IMAGE);
-        },
-        enumerable: true,
-        configurable: true
-    });
-    IconSprite.prototype.imgLoadHandler = function (texture, url) {
-        this.imag.texture = texture;
-        this.mainView.displayObject.addChild(this.imag);
-        this.imag.x = this._icon.x;
-        this.imag.y = this._icon.y;
-        this.imag.mask = this._icon.displayObject;
-    };
-    IconSprite.prototype.choose = function (v) {
-        if (v) {
-            this.c1.setSelectedIndex(1);
-        }
-        else {
-            this.c1.setSelectedIndex(0);
-        }
-    };
-    IconSprite.ONCLICK = "onClikc";
-    return IconSprite;
-}(fairygui.GComponent));
-__reflect(IconSprite.prototype, "IconSprite");
 var IconView = (function () {
     function IconView(v, myIcon) {
         this.mainView = v;
