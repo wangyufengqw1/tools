@@ -34,10 +34,7 @@ var LoadViewBase = (function (_super) {
 __reflect(LoadViewBase.prototype, "LoadViewBase");
 var PublicAPi = (function () {
     function PublicAPi() {
-        /************************************************这个是热门区域*********************************************************/
-        this.myId = [0, 1, 3, 2, 6, 4, 5, 99];
-        this.nameArr = ["幸运福袋", "欢乐钓鱼", "大圣偷桃", "扫雷", "暗棋争霸", "飞刀挑战", "闯三关", "敬请期待"];
-        this.mcArr = [0, 1, 3, 2, 4, 1, 1, 4]; //mc对应的颜色  
+        this.manVoice = [1, 3, 4, 6, 8, 10.13, 18]; //男性头像
         this.gameEvebt = {};
         this.regedEvebt = {};
         this.initEvent();
@@ -304,6 +301,19 @@ var PublicAPi = (function () {
         }
         return value;
     };
+    PublicAPi.prototype.rankSort = function (data, arr) {
+        for (var i = arr.length - 1; i >= 0; i--) {
+            var t = 0;
+            var num = arr[i]; //对应的下标
+            var doordata = DoorShowConfig.getInstance().getTypeData(num);
+            if (data[doordata.name] == 0) {
+                t = arr[i];
+                arr[i] = arr[arr.length - 1];
+                arr[arr.length - 1] = t;
+            }
+        }
+        return arr;
+    };
     return PublicAPi;
 }());
 __reflect(PublicAPi.prototype, "PublicAPi");
@@ -323,11 +333,16 @@ var commonBtn = (function (_super) {
         this.imag = new fairygui.GImage();
     };
     /**
-     * 图片显示
+     * 对应的id
      */
     commonBtn.prototype.myId = function (num) {
         this._myId = num;
-        RES.getResByUrl("resource/assets/icon/" + (num + 100).toString() + ".png", this.imgLoadHandler, this, RES.ResourceItem.TYPE_IMAGE);
+    };
+    /**
+     * 图片显示
+     */
+    commonBtn.prototype.myUrl = function (num) {
+        RES.getResByUrl("resource/assets/icon/" + num + ".png", this.imgLoadHandler, this, RES.ResourceItem.TYPE_IMAGE);
     };
     commonBtn.prototype.getMyId = function () {
         return this._myId + 1;
@@ -346,7 +361,7 @@ var commonBtn = (function (_super) {
             this._txt[1].text = "";
         }
         else {
-            this._txt[1].text = str + "人在玩";
+            this._txt[1].text = str + "人";
         }
     };
     commonBtn.prototype.wx = function (str) {
@@ -621,6 +636,55 @@ var BaseConfig = (function () {
     return BaseConfig;
 }());
 __reflect(BaseConfig.prototype, "BaseConfig");
+var DoorShowConfig = (function (_super) {
+    __extends(DoorShowConfig, _super);
+    function DoorShowConfig() {
+        return _super.call(this, DoorShowTypeData, "id") || this;
+    }
+    DoorShowConfig.getInstance = function () {
+        return gameTool.singleton(DoorShowConfig);
+    };
+    DoorShowConfig.init = function (dataSrc) {
+        DoorShowConfig.getInstance().dataSource = dataSrc;
+    };
+    /**
+     * 获取到排行榜
+     */
+    DoorShowConfig.getRank = function () {
+        if (api.GlobalAPI.publicApi.isRelease) {
+            return DoorShowConfig.getInstance().getTypeData(1).rank;
+        }
+        else {
+            return DoorShowConfig.getInstance().getTypeData(3).rank;
+        }
+    };
+    /**
+     * 获取横竖
+     */
+    DoorShowConfig.getCow = function () {
+        return DoorShowConfig.getInstance().getTypeData(2).rank;
+    };
+    /**
+     * 开启的才算
+     */
+    DoorShowConfig.getLen = function () {
+        var num = 0;
+        for (var k in this.getInstance().dic) {
+            if (this.getInstance().dic[k].open == 1) {
+                num++;
+            }
+        }
+        return num;
+    };
+    return DoorShowConfig;
+}(config.BaseConfig));
+__reflect(DoorShowConfig.prototype, "DoorShowConfig");
+var DoorShowTypeData = (function () {
+    function DoorShowTypeData() {
+    }
+    return DoorShowTypeData;
+}());
+__reflect(DoorShowTypeData.prototype, "DoorShowTypeData");
 var CallBackVo = (function () {
     function CallBackVo(_handler, _thisObj) {
         if (_handler === void 0) { _handler = null; }
@@ -1235,25 +1299,38 @@ var btnItem = (function (_super) {
         this.kong = this.getChild("kong").asCom;
         this._txt.push(this.getChild("txt0").asTextField);
         this._txt.push(this.getChild("txt1").asTextField);
-        this.tipShow = this.getChild("tipShow").asCom;
+        //		this._txt.push(this.getChild("txt2").asTextField);
+        this.c2 = this.getController("c2");
         this.mc = this.getChild("mc").asCom;
         this.imag = new fairygui.GImage();
+        this.c3 = this.getController("c3");
+    };
+    /**
+     * 对应的id
+     */
+    btnItem.prototype.myId = function (num) {
+        this._myId = num;
     };
     /**
      * 图片显示
      */
-    btnItem.prototype.myId = function (num) {
-        this._myId = num;
-        RES.getResByUrl("resource/assets/icon/" + (num + 100).toString() + ".png", this.imgLoadHandler, this, RES.ResourceItem.TYPE_IMAGE);
+    btnItem.prototype.myUrl = function (num) {
+        RES.getResByUrl("resource/assets/icon/" + num + ".png", this.imgLoadHandler, this, RES.ResourceItem.TYPE_IMAGE);
     };
     btnItem.prototype.getMyId = function () {
         return this._myId + 1;
     };
     /**
-     * 招牌显示
+     * 状态显示
      */
-    btnItem.prototype.setTipShow = function (num) {
-        this.tipShow.getController("c1").setSelectedIndex(num);
+    btnItem.prototype.setStateShow = function (num) {
+        this.c2.setSelectedIndex(num);
+    };
+    /**
+     * 免费显示
+     */
+    btnItem.prototype.setFreeShow = function (num) {
+        this.c3.setSelectedIndex(num);
     };
     btnItem.prototype.setMcShow = function (num) {
         this.mc.getController("c1").setSelectedIndex(num);
@@ -2345,6 +2422,84 @@ var ModuleInfo = (function () {
     return ModuleInfo;
 }());
 __reflect(ModuleInfo.prototype, "ModuleInfo");
+var base;
+(function (base) {
+    var MoneyBase = (function (_super) {
+        __extends(MoneyBase, _super);
+        function MoneyBase(type, name, left) {
+            if (left === void 0) { left = 1; }
+            var _this = _super.call(this) || this;
+            _this._$name = name;
+            _this._type = type;
+            _this._isLeft = left;
+            _this.setPivot(0.5, 0.5);
+            return _this;
+        }
+        MoneyBase.prototype.dispose = function () {
+            _super.prototype.dispose.call(this);
+        };
+        /**
+         * 回收
+         */
+        MoneyBase.prototype.retrieve = function () {
+            //舞台移除
+            this.parent && this.parent.removeChild(this);
+            notification.removeNotificationByObject(this);
+        };
+        MoneyBase.prototype.cleanAll = function () {
+            var len = this.numChildren;
+            for (var i = len - 1; i >= 0; i--) {
+                var obj = this.getChildAt(i);
+                if (obj.parent) {
+                    obj.parent.removeChild(obj);
+                    obj = null;
+                }
+            }
+        };
+        return MoneyBase;
+    }(fairygui.GComponent));
+    base.MoneyBase = MoneyBase;
+    __reflect(MoneyBase.prototype, "base.MoneyBase");
+    /**
+     * 倒计时
+     */
+    var pulicMoney = (function (_super) {
+        __extends(pulicMoney, _super);
+        function pulicMoney() {
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            _this._money = 0;
+            return _this;
+        }
+        pulicMoney.prototype.getMoney = function () {
+            return this._money;
+        };
+        pulicMoney.prototype.setNum = function (str) {
+            this.cleanAll();
+            var a;
+            for (var i = 0; i < str.length; i++) {
+                a = fairygui.UIPackage.createObject(this._$name, this._type + "_" + str.charAt(i)).asImage;
+                console.log(str.charAt(i));
+                a.x = 35 * i;
+                this.addChild(a);
+            }
+            this.width = str.length * 35;
+            this.height = a.height;
+            if (this._isLeft == 1) {
+                this.x = (this.parent.width - this.width) / 2;
+            }
+            else if (this._isLeft == 0) {
+                this.x = 0;
+            }
+            else {
+                this.x = this.parent.width - this.width;
+            }
+            this.y = (this.parent.height - this.height) / 2;
+        };
+        return pulicMoney;
+    }(MoneyBase));
+    base.pulicMoney = pulicMoney;
+    __reflect(pulicMoney.prototype, "base.pulicMoney");
+})(base || (base = {}));
 var timeUtils;
 (function (timeUtils) {
     var TimeUtils = (function () {
@@ -2636,18 +2791,17 @@ var DoorView = (function (_super) {
     function DoorView() {
         var _this = _super.call(this, "hallDoor", "mainView") || this;
         _this.mathRadomBg = 0;
-        _this.showNum = 18;
-        _this.myId = [0, 1, 3, 2, 6, 4, 5, 99];
-        _this.nameArr = ["幸运福袋", "欢乐钓鱼", "大圣偷桃", "扫雷", "暗棋争霸", "飞刀挑战", "闯三关", "敬请期待"];
-        _this.mcArr = [0, 1, 3, 2, 4, 1, 1, 4]; //mc对应的颜色
-        _this.tipsArr = [0, 0, 0, 0, 2, 0, 0, 0]; //tip对应的标签 0是没有1是最热2是最新
+        _this.myId = [];
         _this._type = 0;
         _this._num = 0;
         _this._dataFlag = false;
+        _this.txtInit = "您有什么想玩的游戏，不错的建议，都可以在这里告诉我们噢~我们非常重视！（注：10-60个字符，账号、充值、输赢相关问题请直接联系网站客服）";
         return _this;
     }
     DoorView.prototype.dispose = function () {
+        this.isOver = true;
         this.remove();
+        this.eventRemove();
         _super.prototype.dispose.call(this);
     };
     DoorView.prototype.open = function () {
@@ -2655,12 +2809,13 @@ var DoorView = (function (_super) {
         for (var _i = 0; _i < arguments.length; _i++) {
             args[_i] = arguments[_i];
         }
+    };
+    DoorView.prototype.initView = function () {
+        this.showNum = 18;
         this.item = [];
         this._textList = [];
-        for (var i = 0; i < 4; i++) {
-            if (i < 2) {
-                this._textList.push(this.getTextField("txt" + i));
-            }
+        for (var i = 0; i < 5; i++) {
+            this._textList.push(this.getTextField("txt" + i));
         }
         for (var y = 0; y < this.showNum; y++) {
             this.item.push(new IconSprite(this._ui.getChild("item" + y).asCom));
@@ -2680,9 +2835,12 @@ var DoorView = (function (_super) {
         this.itemlist.callbackThisObj = this;
         this.itemlist.scrollPane.addEventListener(fairygui.ScrollPane.SCROLL, this.onChange, this);
         this.itemlist.addEventListener(fairygui.ItemEvent.CLICK, this.onItemClick, this);
-        api.GlobalAPI.soundManager.changeMusic(false, "");
+        // api.GlobalAPI.soundManager.pauseBGM();
+        // api.GlobalAPI.soundManager.isNoHaveMusic = true;
         api.GlobalAPI.webSocket.request(GameEvent.GetRenshu, {}, this.getRenshu.bind(this));
         api.GlobalAPI.webSocket.request(GameEvent.GetAaminiAccountInfo, {}, this.useDataUpdate.bind(this));
+        this.createTip();
+        api.GlobalAPI.soundManager.playBGM("resource/assets/common/bgm.mp3");
     };
     DoorView.prototype.onChange = function (e) {
         if (this.itemlist.scrollPane.posY + this.itemlist.height >= this.itemlist.scrollPane.contentHeight) {
@@ -2692,164 +2850,97 @@ var DoorView = (function (_super) {
             this.down.visible = true;
         }
     };
-    DoorView.prototype.getListItemResource = function (index) {
-        return fairygui.UIPackage.getItemURL("hallDoor", "publicBtn");
-    };
     DoorView.prototype.iteRenderer = function (index, item) {
-        item.myId(this.myId[index]);
-        item.myName(this.nameArr[index]);
-        item.setMcShow(this.mcArr[index]);
-        item.setTipShow(this.tipsArr[index]);
-        if (this.pNum[index] == "") {
+        //	api.GlobalAPI.publicApi.pNum = [];\
+        var num = this.myId[index]; //对应的下标
+        var doordata = DoorShowConfig.getInstance().getTypeData(num);
+        item.myId(doordata.id);
+        item.myUrl(doordata.url);
+        item.myName(doordata.name);
+        item.setMcShow(doordata.color);
+        item.setStateShow(doordata.state);
+        item.setFreeShow(doordata.free);
+        var str = String(this.curdata[doordata.name]);
+        var atr = "";
+        if (str == "undefined") {
+            atr = "-1";
+        }
+        else {
+            for (var x = 0; x < str.length; x++) {
+                atr += str.charAt(x);
+                if ((str.length - x) % 3 == 1 && x != str.length - 1) {
+                    atr += ",";
+                }
+            }
+        }
+        if (atr != "-1") {
+            if (atr == "0") {
+                item.enabled = false;
+                item.getChild("txt1").asTextField.text = "正在维护中...";
+            }
+            else {
+                item.enabled = true;
+                item.getChild("txt1").asTextField.text = atr + "人在玩";
+            }
+        }
+        if (Number(atr) == 0) {
+            api.GlobalAPI.publicApi.pNum.push("");
             item.enabled = false;
             item.wx("正在维护中...");
         }
-        else if (this.pNum[index] == "a") {
+        else if (Number(atr) == -1) {
             item.wx("敬请期待..");
+            api.GlobalAPI.publicApi.pNum.push("a");
         }
         else {
             item.enabled = true;
-            item.pNum(this.pNum[index]);
+            item.pNum(atr);
+            api.GlobalAPI.publicApi.pNum.push(atr);
+        }
+        if (this.curdata["fenghao"] && this.curdata["fenghao"] == 1) {
+            this.c1.setSelectedIndex(2);
+            this.isFeng = true;
+        }
+        else {
+            this.isFeng = false;
         }
     };
     DoorView.prototype.getRenshu = function (data) {
-        this.pNum = [];
-        var hot = [0, 0]; //热门
-        for (var i = 0; i < this.nameArr.length; i++) {
-            var atr = "";
-            var str = String(data[this.nameArr[i]]);
-            if (hot[0] < data[this.nameArr[i]]) {
-                hot[0] = data[this.nameArr[i]];
-                hot[1] = i;
-            }
-            if (str == "undefined") {
-                atr = "-1";
-            }
-            else {
-                for (var x = 0; x < str.length; x++) {
-                    atr += str.charAt(x);
-                    if ((str.length - x) % 3 == 1 && x != str.length - 1) {
-                        atr += ",";
-                    }
-                }
-            }
-            if (Number(atr) == 0) {
-                this.pNum.push("");
-            }
-            else if (Number(atr) == -1) {
-                this.pNum.push("a");
-            }
-            else {
-                this.pNum.push(atr);
-            }
-        }
-        this.changeNum(hot[1]);
-        this.itemlist.numItems = this.nameArr.length;
-    };
-    /**
-     * 将热门放在第一位
-     */
-    DoorView.prototype.changeNum = function (num) {
-        var t = this.myId[0];
-        this.myId[0] = this.myId[num];
-        this.myId[num] = t;
-        var tt = this.nameArr[0];
-        this.nameArr[0] = this.nameArr[num];
-        this.nameArr[num] = tt;
-        t = this.mcArr[0];
-        this.mcArr[0] = this.mcArr[num];
-        this.mcArr[num] = t;
-        tt = this.pNum[0];
-        this.pNum[0] = this.pNum[num];
-        this.pNum[num] = tt;
-        this.tipsArr[0] = 1;
+        this.curdata = data;
+        api.GlobalAPI.publicApi.pNum = [];
+        this.myId = DoorShowConfig.getRank();
+        this.itemlist.numItems = DoorShowConfig.getRank().length;
     };
     DoorView.prototype.onItemClick = function (e) {
-        var _this = this;
-        var item = e.itemObject;
-        switch (item.getMyId()) {
-            case 1:
-                //红包
-                api.GlobalAPI.webSocket.request(GameEvent.getingame, { gameid: 1 }, function (data) {
-                    if (data["errorCode"] == 0) {
-                        gameTool.stage.setContentSize(1920, 1080);
-                        gameTool.stage.orientation = egret.OrientationMode.LANDSCAPE;
-                        api.GlobalAPI.moduleManager.openModule("redProject");
-                        _this.dispose();
-                    }
-                    else {
-                        api.createAlert("游戏维护中");
-                    }
-                });
-                //	MemoryLeakUtil.resetObj();
-                break;
-            case 2:
-                //捕鱼
-                api.GlobalAPI.webSocket.request(GameEvent.getingame, { gameid: 2 }, function (data) {
-                    if (data["errorCode"] == 0) {
-                        gameTool.stage.orientation = egret.OrientationMode.LANDSCAPE;
-                        gameTool.stage.setContentSize(1920, 1080);
-                        api.GlobalAPI.moduleManager.openModule("fishGame");
-                        _this.dispose();
-                    }
-                    else {
-                        api.createAlert("游戏维护中");
-                    }
-                });
-                //	MemoryLeakUtil.compare();
-                break;
-            case 3:
-                //扫雷
-                api.GlobalAPI.webSocket.request(GameEvent.getingame, { gameid: 4 }, function (data) {
-                    if (data["errorCode"] == 0) {
-                        gameTool.stage.orientation = egret.OrientationMode.LANDSCAPE;
-                        gameTool.stage.setContentSize(1920, 1080);
-                        api.GlobalAPI.moduleManager.openModule("sweepGame");
-                        _this.dispose();
-                    }
-                    else {
-                        api.createAlert("游戏维护中");
-                    }
-                });
-                break;
-            case 4:
-                api.GlobalAPI.webSocket.request(GameEvent.getingame, { gameid: 5 }, function (data) {
-                    if (data["errorCode"] == 0) {
-                        api.GlobalAPI.moduleManager.openModule("gzHero");
-                        _this.dispose();
-                    }
-                    else {
-                        api.createAlert("游戏维护中");
-                    }
-                });
-                break;
-            case 5:
-                api.GlobalAPI.webSocket.request(GameEvent.getingame, { gameid: 6 }, function (data) {
-                    if (data["errorCode"] == 0) {
-                        api.GlobalAPI.moduleManager.openModule("feidao");
-                        _this.dispose();
-                    }
-                    else {
-                        api.createAlert("游戏维护中");
-                    }
-                });
-                break;
-            case 6:
-                api.GlobalAPI.webSocket.request(GameEvent.getingame, { gameid: 7 }, function (data) {
-                    if (data["errorCode"] == 0) {
-                        api.GlobalAPI.moduleManager.openModule("rouge");
-                        _this.dispose();
-                    }
-                    else {
-                        api.createAlert("游戏维护中");
-                    }
-                });
-                break;
-            case 7:
-                api.GlobalAPI.moduleManager.openModule("xq");
-                this.dispose();
-                break;
-        }
+        // 	let item : btnItem = e.itemObject as btnItem;
+        // 	api.GlobalAPI.soundManager.playBGM("resource/assets/common/bgm.mp3");
+        // 	if(item.getMyId() == 101 || item.getMyId() == 102){
+        // 		this.c1.setSelectedIndex(0);
+        // 	}else if(this.isFeng){
+        // 		this.c1.setSelectedIndex(2);
+        // 		return ;
+        // 	}
+        // 	api.GlobalAPI.soundManager.isNoHaveMusic = false;
+        //    let doordata : DoorShowTypeData = DoorShowConfig.getInstance().getTypeData(item.getMyId());
+        // 	api.GlobalAPI.webSocket.request(GameEvent.getingame,{gameid:item.getMyId()},(data)=>{
+        // 		if(data["errorCode"] == 0){
+        // 			let a : number[] = DoorShowConfig.getCow();
+        // 			if(a.indexOf(item.getMyId())>-1){
+        // 				gameTool.stage.setContentSize(1920,1080);
+        // 				gameTool.stage.orientation = egret.OrientationMode.LANDSCAPE;
+        // 			}
+        // 			api.GlobalAPI.moduleManager.openModule(doordata.moduleName);
+        // 			this.dispose();
+        // 		}else{
+        // 			api.createAlert("游戏维护中");
+        // 		}
+        // 	});	
+        // 	switch (item.getMyId()) {
+        // 		case 101:
+        // 		case 102:
+        // 			this.c1.setSelectedIndex(0);
+        // 			break;	
+        // 	}
     };
     /**
      * 创建头像
@@ -2902,6 +2993,9 @@ var DoorView = (function (_super) {
      */
     DoorView.prototype.initEvent = function () {
         this.regedEvebt = {};
+        this._textList[3].addEventListener(egret.TouchEvent.TOUCH_TAP, this.txtClick, this);
+        this._textList[3].addEventListener(egret.TextEvent.CHANGE, this.txtChange, this);
+        this.regedEvebt[GameEvent.CMD_HF] = this.tipShow.bind(this);
         this.eventInit();
     };
     DoorView.prototype.kickoutF = function () {
@@ -3008,6 +3102,28 @@ var DoorView = (function (_super) {
             case 98:
                 this.c1.setSelectedIndex(1);
                 break;
+            case 103:
+                this.c1.setSelectedIndex(0);
+                break;
+            case 104:
+                if (this._textList[3].text == this.txtInit) {
+                    tip.showTextTip("提交成功");
+                    this.c1.setSelectedIndex(0);
+                    return;
+                }
+                api.GlobalAPI.webSocket.request(GameEvent.Yijianfankui, { content: this._textList[3].text });
+                this.c1.setSelectedIndex(0);
+                tip.showTextTip("提交成功");
+                break;
+            case 105:
+                gameTool.stage.setContentSize(1920, 1080);
+                gameTool.stage.orientation = egret.OrientationMode.LANDSCAPE;
+                api.GlobalAPI.moduleManager.openModule("niu");
+                // this.c1.setSelectedIndex(3);
+                // this._textList[3].text = this.txtInit;
+                // this._textList[3].color = 0xCCCCCC;
+                // this._textList[4].text = "还能输入60字";
+                break;
             default:
                 break;
         }
@@ -3042,6 +3158,66 @@ var DoorView = (function (_super) {
         // 	this._buttonList[x].removeEventListener(mouse.MouseEvent.ROLL_OVER, this.onRollOver, this);
         // 	this._buttonList[x].removeEventListener(mouse.MouseEvent.ROLL_OUT, this.onRollOut, this);
         // }
+    };
+    /**
+     * 前端提示
+     */
+    DoorView.prototype.createTip = function () {
+        this.tipArr = [];
+        this.tipNum = -1;
+        this.c2 = this._ui.getController("c2");
+        this.c2.setSelectedIndex(0);
+    };
+    /**
+     * 推送展示
+     */
+    DoorView.prototype.tipShow = function (data) {
+        if (data != null) {
+            this.tipArr.push(data);
+        }
+        if (this.tipNum == -1) {
+            this.tipNum++;
+            this.showTip();
+        }
+    };
+    /**
+     * 显示提示
+     */
+    DoorView.prototype.showTip = function () {
+        if (this.isOver) {
+            return;
+        }
+        this.c2.setSelectedIndex(1);
+        this._textList[2].text = api.GlobalAPI.publicApi.doorTipShow(this.tipArr[this.tipNum]);
+        setTimeout(this.nextTip.bind(this), 6000);
+    };
+    /**
+     * 下一条推送
+     */
+    DoorView.prototype.nextTip = function () {
+        this.tipNum++;
+        this.c2.setSelectedIndex(0);
+        //当推送完后 重置
+        if (this.tipNum >= this.tipArr.length) {
+            this.tipNum = -1;
+            this.tipArr = [];
+            return;
+        }
+        //消失2s接着弹
+        setTimeout(this.showTip.bind(this), 3000);
+    };
+    /*****************************************************************意见反馈*******************************************************************/
+    /**
+     * 文本点击
+     */
+    DoorView.prototype.txtClick = function (e) {
+        if (this._textList[3].color == 0xCCCCCC) {
+            this._textList[3].color = 0x666666;
+            this._textList[3].text = "";
+        }
+    };
+    DoorView.prototype.txtChange = function (e) {
+        this._textList[4].text = "还能输入" + (60 - this._textList[3].text.length) + "字";
     };
     return DoorView;
 }(gui.OvBase));

@@ -10,18 +10,28 @@ class btnItem extends fairygui.GButton{
 		this.kong = this.getChild("kong").asCom;
 		this._txt.push(this.getChild("txt0").asTextField);
 		this._txt.push(this.getChild("txt1").asTextField);
-		this.tipShow = this.getChild("tipShow").asCom;
+//		this._txt.push(this.getChild("txt2").asTextField);
+		this.c2 = this.getController("c2");
 		this.mc      = this.getChild("mc").asCom;
 		this.imag    = new fairygui.GImage();
+		this.c3    = this.getController("c3");
 	}
 
 	/**
-	 * 图片显示
+	 * 对应的id
 	 */
 	myId(num:number):void
 	{
 		this._myId = num;
-		RES.getResByUrl("resource/assets/icon/"+(num+100).toString()+".png",this.imgLoadHandler,this,RES.ResourceItem.TYPE_IMAGE);
+	}
+
+
+	/**
+	 * 图片显示
+	 */
+	myUrl(num:string):void
+	{
+		RES.getResByUrl("resource/assets/icon/"+num+".png",this.imgLoadHandler,this,RES.ResourceItem.TYPE_IMAGE);
 	}
 
 	getMyId():number
@@ -31,11 +41,19 @@ class btnItem extends fairygui.GButton{
 	private _myId :number
 
 	/**
-	 * 招牌显示
+	 * 状态显示
 	 */
-	setTipShow(num:number):void
+	setStateShow(num:number):void
 	{
-		this.tipShow.getController("c1").setSelectedIndex(num);
+		this.c2.setSelectedIndex(num);
+	}
+
+	/**
+	 * 免费显示
+	 */
+	setFreeShow(num:number):void
+	{
+		this.c3.setSelectedIndex(num);
 	}
 
 
@@ -74,7 +92,8 @@ class btnItem extends fairygui.GButton{
 
 	private kong    : fairygui.GComponent;
 	private _txt    : fairygui.GTextField[];
-	private tipShow : fairygui.GComponent;
 	private mc      : fairygui.GComponent;
 	private imag    : fairygui.GImage;
+	private c2      : fairygui.Controller;
+	private c3      : fairygui.Controller;
 }

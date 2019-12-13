@@ -15,13 +15,22 @@ class commonBtn extends fairygui.GButton{
 		this.imag    = new fairygui.GImage();
 	}
 
+	
 	/**
-	 * 图片显示
+	 * 对应的id
 	 */
 	myId(num:number):void
 	{
 		this._myId = num;
-		RES.getResByUrl("resource/assets/icon/"+(num+100).toString()+".png",this.imgLoadHandler,this,RES.ResourceItem.TYPE_IMAGE);
+	}
+
+
+	/**
+	 * 图片显示
+	 */
+	myUrl(num:string):void
+	{
+		RES.getResByUrl("resource/assets/icon/"+num+".png",this.imgLoadHandler,this,RES.ResourceItem.TYPE_IMAGE);
 	}
 
 	getMyId():number
@@ -50,7 +59,7 @@ class commonBtn extends fairygui.GButton{
 		if(str == ""){
 			this._txt[1].text = "";
 		}else{
-			this._txt[1].text = str+"人在玩";
+			this._txt[1].text = str+"人";
 		}
 	}
 

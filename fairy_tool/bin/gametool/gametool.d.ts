@@ -2528,6 +2528,7 @@ declare module config {
  * Created by lxz on 2017/8/3.
  */
 declare module loadUtil {
+    var packName: any;
     class Loader {
         /**
          * 加载进度界面
@@ -2537,7 +2538,6 @@ declare module loadUtil {
         private _groupName;
         private _groupListens;
         private loadRes;
-        private packName;
         constructor();
         /**
          * 加载资源组

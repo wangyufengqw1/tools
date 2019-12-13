@@ -6,27 +6,33 @@ class DoorView extends gui.OvBase{
 
 	dispose():void
 	{
+		this.isOver = true;
 		this.remove();
+		this.eventRemove();
 		super.dispose();
 	}
 
 	private mathRadomBg : number = 0;
 	private c1 : fairygui.Controller;
 	private item :IconSprite[];
-	private showNum : number = 18;
+	private showNum : number;
 	private headIcon : headIcon;
 	private itemlist : fairygui.GList;
 	private btn100   : fairygui.GButton;
 	private down     : fairygui.GComponent;
 	open(...args):void
 	{
+		
+	}
+
+	initView():void
+	{
+		this.showNum = 18;
 		this.item = [];
 		this._textList = [];
-		for(var i : number = 0;i<4;i++)
+		for(var i : number = 0;i<5;i++)
 		{
-			if(i<2){
-				this._textList.push(this.getTextField("txt"+i));
-			}
+			this._textList.push(this.getTextField("txt"+i));
 		}
 		for(var y : number = 0;y<this.showNum;y++){
 			this.item.push(new IconSprite(this._ui.getChild("item"+y).asCom));
@@ -46,9 +52,12 @@ class DoorView extends gui.OvBase{
 		this.itemlist.callbackThisObj = this;
 		this.itemlist.scrollPane.addEventListener(fairygui.ScrollPane.SCROLL,this.onChange,this);
 		this.itemlist.addEventListener(fairygui.ItemEvent.CLICK,this.onItemClick,this);
-		api.GlobalAPI.soundManager.changeMusic(false,"");
+		// api.GlobalAPI.soundManager.pauseBGM();
+		// api.GlobalAPI.soundManager.isNoHaveMusic = true;
 		api.GlobalAPI.webSocket.request(GameEvent.GetRenshu,{},this.getRenshu.bind(this));	
 		api.GlobalAPI.webSocket.request(GameEvent.GetAaminiAccountInfo,{},this.useDataUpdate.bind(this));
+		this.createTip();
+		api.GlobalAPI.soundManager.playBGM("resource/assets/common/bgm.mp3");
 	}
 
 	private onChange(e:fairygui.DragEvent):void
@@ -60,173 +69,105 @@ class DoorView extends gui.OvBase{
 		}
 	}
 
-	private getListItemResource(index:number)
+	private iteRenderer(index: number, item: btnItem):void
 	{
-		return  fairygui.UIPackage.getItemURL("hallDoor", "publicBtn");
-	}
+	//	api.GlobalAPI.publicApi.pNum = [];\
+		let num : number = this.myId[index];      //对应的下标
+		let doordata : DoorShowTypeData = DoorShowConfig.getInstance().getTypeData(num);
+		item.myId(doordata.id);
+		item.myUrl(doordata.url);
+		item.myName(doordata.name);
+		item.setMcShow(doordata.color);
+		item.setStateShow(doordata.state);
+		item.setFreeShow(doordata.free);
 
-	private iteRenderer(index:number,item:btnItem):void
-	{
-		item.myId(this.myId[index]);
-		item.myName(this.nameArr[index]);
-		item.setMcShow(this.mcArr[index]);
-		item.setTipShow(this.tipsArr[index]);
-		if(this.pNum[index] == ""){
-			item.enabled = false;
-			item.wx("正在维护中...");
-		}else if(this.pNum[index] == "a"){
-			item.wx("敬请期待..");
+		let str : string = String(this.curdata[doordata.name]);
+		let atr : string = "";
+		if(str == "undefined"){
+			atr = "-1";
 		}else{
-			item.enabled = true;
-			item.pNum(this.pNum[index]);
-		}
-	}
-
-	private myId    : number[] = [0,1,3,2,6,4,5,99];
-	private nameArr : string[] = ["幸运福袋","欢乐钓鱼","大圣偷桃","扫雷","暗棋争霸","飞刀挑战","闯三关","敬请期待"];
-	private mcArr   : number[] = [0,1,3,2,4,1,1,4];    //mc对应的颜色
-	private tipsArr : number[] = [0,0,0,0,2,0,0,0];    //tip对应的标签 0是没有1是最热2是最新
-	private pNum    : string[];
-	private getRenshu(data:any):void
-	{
-		this.pNum = [];
-		let hot : number[] = [0,0];     //热门
-		for(var i : number=0;i<this.nameArr.length;i++){
-			let atr : string = "";
-			let str : string = String(data[this.nameArr[i]]);
-			if(hot[0]<data[this.nameArr[i]]){
-				hot[0] = data[this.nameArr[i]];
-				hot[1] = i;
-			}
-			if(str == "undefined"){
-				atr = "-1";
-			}else{
-				for(var x : number = 0;x<str.length;x++){
-					atr+=str.charAt(x);
-					if((str.length-x)%3==1 && x!=str.length-1){
-						atr+=",";
-					}
+			for(var x : number = 0;x<str.length;x++){
+				atr+=str.charAt(x);
+				if((str.length-x)%3==1 && x!=str.length-1){
+					atr+=",";
 				}
 			}
-			
-			if(Number(atr) == 0){
-				this.pNum.push("");
-			}else if(Number(atr) == -1){
-				this.pNum.push("a");
+		}
+
+		if(atr!="-1"){
+			if(atr == "0"){
+				item.enabled = false;
+				item.getChild("txt1").asTextField.text = "正在维护中...";
 			}else{
-				this.pNum.push(atr);
+				item.enabled = true;
+				item.getChild("txt1").asTextField.text = atr + "人在玩";
 			}
 		}
-		this.changeNum(hot[1]);
+		if(Number(atr) == 0){
+			api.GlobalAPI.publicApi.pNum.push("");
+			item.enabled = false;
+			item.wx("正在维护中...");
+		}else if(Number(atr) == -1){
+			item.wx("敬请期待..");
+			api.GlobalAPI.publicApi.pNum.push("a");
+		}else{
+			item.enabled = true;
+			item.pNum(atr);
+			api.GlobalAPI.publicApi.pNum.push(atr);
+		}
 		
-		this.itemlist.numItems = this.nameArr.length;
+		if(this.curdata["fenghao"] &&  this.curdata["fenghao"]==1){
+			this.c1.setSelectedIndex(2);
+			this.isFeng = true;
+		}else{
+			this.isFeng = false;
+		}
 	}
 
-	/**
-	 * 将热门放在第一位
-	 */
-	private changeNum(num:number):void
+	private myId    : any = [];
+	private getRenshu(data:any):void
 	{
-		let t = this.myId[0];
-		this.myId[0] = this.myId[num];
-		this.myId[num] = t;
-
-		let tt = this.nameArr[0];
-		this.nameArr[0] = this.nameArr[num];
-		this.nameArr[num] = tt;
-
-		t = this.mcArr[0];
-		this.mcArr[0] = this.mcArr[num];
-		this.mcArr[num] = t;
-
-		tt = this.pNum[0];
-		this.pNum[0] = this.pNum[num];
-		this.pNum[num] = tt;
-
-		this.tipsArr[0] = 1;
-
+		this.curdata =data;
+		api.GlobalAPI.publicApi.pNum = [];
+		this.myId         = DoorShowConfig.getRank();
+		this.itemlist.numItems = DoorShowConfig.getRank().length;
 	}
+	private isFeng:boolean
+	private curdata:any;
 
 	private onItemClick(e:fairygui.ItemEvent):void
 	{
-		let item : btnItem = e.itemObject as btnItem;
-		switch (item.getMyId()) {
-			case 1:
-				//红包
-				api.GlobalAPI.webSocket.request(GameEvent.getingame,{gameid:1},(data)=>{
-					if(data["errorCode"] == 0){
-						gameTool.stage.setContentSize(1920,1080);
-						gameTool.stage.orientation = egret.OrientationMode.LANDSCAPE;
-						api.GlobalAPI.moduleManager.openModule("redProject");
-						this.dispose();
-					}else{
-						api.createAlert("游戏维护中");
-					}
-				});
-			//	MemoryLeakUtil.resetObj();
-				break;	
-			case 2:		  
-				//捕鱼
-				api.GlobalAPI.webSocket.request(GameEvent.getingame,{gameid:2},(data)=>{
-					if(data["errorCode"] == 0){
-						gameTool.stage.orientation = egret.OrientationMode.LANDSCAPE;
-						gameTool.stage.setContentSize(1920,1080);
-						api.GlobalAPI.moduleManager.openModule("fishGame");
-						this.dispose();
-					}else{
-						api.createAlert("游戏维护中");
-					}
-				});
-			//	MemoryLeakUtil.compare();
-				break;	
-			case 3:
-				//扫雷
-				api.GlobalAPI.webSocket.request(GameEvent.getingame,{gameid:4},(data)=>{
-					if(data["errorCode"] == 0){
-						gameTool.stage.orientation = egret.OrientationMode.LANDSCAPE;
-						gameTool.stage.setContentSize(1920,1080);
-						api.GlobalAPI.moduleManager.openModule("sweepGame");
-						this.dispose();
-					}else{ 
-						api.createAlert("游戏维护中");
-					}
-				});
-				break;		
-			case 4:
-				api.GlobalAPI.webSocket.request(GameEvent.getingame,{gameid:5},(data)=>{
-					if(data["errorCode"] == 0){
-						api.GlobalAPI.moduleManager.openModule("gzHero");
-						this.dispose();	
-					}else{
-						api.createAlert("游戏维护中");
-					}
-				});
-				break;		
-			case 5:
-				api.GlobalAPI.webSocket.request(GameEvent.getingame,{gameid:6},(data)=>{
-					if(data["errorCode"] == 0){
-						api.GlobalAPI.moduleManager.openModule("feidao");
-						this.dispose();
-					}else{
-						api.createAlert("游戏维护中");
-					}
-				});
-				break;		
-			case 6:
-				api.GlobalAPI.webSocket.request(GameEvent.getingame,{gameid:7},(data)=>{
-					if(data["errorCode"] == 0){
-						api.GlobalAPI.moduleManager.openModule("rouge");
-						this.dispose();
-					}else{
-						api.createAlert("游戏维护中");
-					}
-				});
-				break;	
-			case 7:
-				api.GlobalAPI.moduleManager.openModule("xq");
-				this.dispose();
-				break;
-		}
+	// 	let item : btnItem = e.itemObject as btnItem;
+	// 	api.GlobalAPI.soundManager.playBGM("resource/assets/common/bgm.mp3");
+	// 	if(item.getMyId() == 101 || item.getMyId() == 102){
+	// 		this.c1.setSelectedIndex(0);
+	// 	}else if(this.isFeng){
+	// 		this.c1.setSelectedIndex(2);
+	// 		return ;
+	// 	}
+	// 	api.GlobalAPI.soundManager.isNoHaveMusic = false;
+
+	//    let doordata : DoorShowTypeData = DoorShowConfig.getInstance().getTypeData(item.getMyId());
+	// 	api.GlobalAPI.webSocket.request(GameEvent.getingame,{gameid:item.getMyId()},(data)=>{
+	// 		if(data["errorCode"] == 0){
+	// 			let a : number[] = DoorShowConfig.getCow();
+	// 			if(a.indexOf(item.getMyId())>-1){
+	// 				gameTool.stage.setContentSize(1920,1080);
+	// 				gameTool.stage.orientation = egret.OrientationMode.LANDSCAPE;
+	// 			}
+	// 			api.GlobalAPI.moduleManager.openModule(doordata.moduleName);
+	// 			this.dispose();
+	// 		}else{
+	// 			api.createAlert("游戏维护中");
+	// 		}
+	// 	});	
+	 	
+	// 	switch (item.getMyId()) {
+	// 		case 101:
+	// 		case 102:
+	// 			this.c1.setSelectedIndex(0);
+	// 			break;	
+	// 	}
 	}
 
 	/**
@@ -292,6 +233,9 @@ class DoorView extends gui.OvBase{
 	initEvent():void
 	{
 		this.regedEvebt={};
+		this._textList[3].addEventListener(egret.TouchEvent.TOUCH_TAP,this.txtClick,this);
+		this._textList[3].addEventListener(egret.TextEvent.CHANGE,this.txtChange,this);
+		this.regedEvebt[GameEvent.CMD_HF]=this.tipShow.bind(this); 
 		this.eventInit();
 	}
 
@@ -423,6 +367,28 @@ class DoorView extends gui.OvBase{
 			case 98:
 				this.c1.setSelectedIndex(1);
 				break;	
+			case 103:
+				this.c1.setSelectedIndex(0);
+				break;
+			case 104:
+				if(this._textList[3].text == this.txtInit){
+					tip.showTextTip("提交成功");
+					this.c1.setSelectedIndex(0);
+					return ;
+				}
+				api.GlobalAPI.webSocket.request(GameEvent.Yijianfankui,{content:this._textList[3].text});
+				this.c1.setSelectedIndex(0);
+				tip.showTextTip("提交成功");
+				break;		
+			case 105:
+				gameTool.stage.setContentSize(1920,1080);
+				gameTool.stage.orientation = egret.OrientationMode.LANDSCAPE;
+				api.GlobalAPI.moduleManager.openModule("niu");
+				// this.c1.setSelectedIndex(3);
+				// this._textList[3].text = this.txtInit;
+				// this._textList[3].color = 0xCCCCCC;
+				// this._textList[4].text = "还能输入60字";
+				break;		
 			default:
 				break;
 		}
@@ -476,4 +442,82 @@ class DoorView extends gui.OvBase{
 		// 	this._buttonList[x].removeEventListener(mouse.MouseEvent.ROLL_OUT, this.onRollOut, this);
 		// }
 	}
+
+	/**
+	 * 前端提示
+	 */
+	private createTip():void
+	{
+		this.tipArr = [];
+		this.tipNum = -1;
+		this.c2 = this._ui.getController("c2");	
+		this.c2.setSelectedIndex(0);
+	}
+
+	/**
+	 * 推送展示
+	 */
+	private tipShow(data:any):void
+	{
+		if(data!=null){
+			this.tipArr.push(data);
+		}
+		if(this.tipNum == -1){
+			this.tipNum++;
+			this.showTip();
+		}
+	}
+
+	/**
+	 * 显示提示
+	 */
+	private showTip():void
+	{
+		if(this.isOver){
+			return ;
+		}
+		this.c2.setSelectedIndex(1);
+		this._textList[2].text = api.GlobalAPI.publicApi.doorTipShow(this.tipArr[this.tipNum]);
+		setTimeout(this.nextTip.bind(this), 6000);
+	}
+
+	/**
+	 * 下一条推送
+	 */
+	private nextTip():void
+	{
+		this.tipNum++;
+		this.c2.setSelectedIndex(0);
+		//当推送完后 重置
+		if(this.tipNum>=this.tipArr.length){
+			this.tipNum = -1;
+			this.tipArr = [];
+			return ;
+		}
+		//消失2s接着弹
+		setTimeout(this.showTip.bind(this), 3000);
+	}
+
+	/*****************************************************************意见反馈*******************************************************************/
+	/**
+	 * 文本点击
+	 */
+	private txtClick(e:egret.TouchEvent):void
+	{
+		if(this._textList[3].color == 0xCCCCCC){
+			this._textList[3].color = 0x666666;
+			this._textList[3].text = "";
+		}
+	}
+
+	private txtChange(e:egret.Event):void
+	{	
+		this._textList[4].text = "还能输入"+(60-this._textList[3].text.length) +"字";
+	}
+
+	private isOver   : boolean;
+	private tipNum   : number;
+	private tipArr   : string[];       //推送数组
+	private c2       : fairygui.Controller;
+	private txtInit  : string = "您有什么想玩的游戏，不错的建议，都可以在这里告诉我们噢~我们非常重视！（注：10-60个字符，账号、充值、输赢相关问题请直接联系网站客服）";
 }

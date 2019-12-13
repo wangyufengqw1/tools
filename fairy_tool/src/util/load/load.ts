@@ -6,7 +6,7 @@
  */
 module loadUtil {
     import singleton = gameTool.singleton;
-
+    export var  packName:any;
     export class Loader {
         /**
          * 加载进度界面
@@ -16,12 +16,11 @@ module loadUtil {
         private _groupName: string;
         private _groupListens: any;
         private loadRes   : string[];
-        private packName  : any;
+    //    private packName  : any;
 
         constructor() {
             this.loadRes = [];
             this._groupListens = {};
-            this.packName = {redProject:"xinyun",sweepGame:"saolei",gzHero:"gzHero",feidao:"feidao",fishGame:"diaoyu",rouge:"rouge",fish:"fish",xq:"xq",xqDoor:"xqDoor"}
         }
 
         /**
@@ -80,8 +79,8 @@ module loadUtil {
             this.loadRes.push(str);
             for(let i : number = this.loadRes.length-2;i>=0;i--){
                 if(RES.destroyRes(this.loadRes[i])){
-                    if(fairygui.UIPackage.getByName(this.packName[this.loadRes[i]])){
-                         fairygui.UIPackage.removePackage(fairygui.UIPackage.getByName(this.packName[this.loadRes[i]]).id);
+                    if(fairygui.UIPackage.getByName(loadUtil.packName[this.loadRes[i]])){
+                         fairygui.UIPackage.removePackage(fairygui.UIPackage.getByName(loadUtil.packName[this.loadRes[i]]).id);
                     }
                      this.loadRes.splice(i,1); 
                 };

@@ -323,15 +323,28 @@ class PublicAPi{
 			return value;
     }
 
-    soundFirst:boolean;
+    rankSort(data:any,arr:any):any
+    {
+        for(let i : number = arr.length-1;i>=0;i--){
+            let t   : number = 0;
+            let num : number = arr[i];      //对应的下标
+		    let doordata : DoorShowTypeData = DoorShowConfig.getInstance().getTypeData(num);
+            if(data[doordata.name] == 0){  //维护
+                t = arr[i];
+                arr[i] = arr[arr.length-1];
+                arr[arr.length-1] = t;
+            }
+        }
+        return arr;
+    }
+
     isOnlie:number;     //1网络有链接 2没有网络 3没有网络提示框已弹 4
-    isRelease:boolean; 
-    openModule:string;  //打开模块的模块名s
+    isRelease:boolean;  //是否是外网
+    openModule:string;  //打开模块的模块名
     openStr   :string;  //字符串
 
-    /************************************************这个是热门区域*********************************************************/
-    myId    : number[] = [0,1,3,2,6,4,5,99];                                      
-    nameArr : string[] = ["幸运福袋","欢乐钓鱼","大圣偷桃","扫雷","暗棋争霸","飞刀挑战","闯三关","敬请期待"];
-    mcArr   : number[] = [0,1,3,2,4,1,1,4];    //mc对应的颜色  
-    pNum    : string[];
+   /************************************************这个是热门区域******************************************************** */
+    pNum    : string[];                          //当前人数在线
+    numRank : any;                               //大厅界面的人数排布
+    manVoice: number[] = [1,3,4,6,8,10.13,18];   //男性头像
 }

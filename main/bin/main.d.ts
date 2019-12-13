@@ -87,24 +87,27 @@ declare class PublicAPi {
      * 将玩家的信息排在第一位
      */
     firstMyInfomation(value: any): any;
-    soundFirst: boolean;
+    rankSort(data: any, arr: any): any;
     isOnlie: number;
     isRelease: boolean;
     openModule: string;
     openStr: string;
-    /************************************************这个是热门区域*********************************************************/
-    myId: number[];
-    nameArr: string[];
-    mcArr: number[];
+    /************************************************这个是热门区域******************************************************** */
     pNum: string[];
+    numRank: any;
+    manVoice: number[];
 }
 declare class commonBtn extends fairygui.GButton {
     constructor();
     constructFromResource(): void;
     /**
-     * 图片显示
+     * 对应的id
      */
     myId(num: number): void;
+    /**
+     * 图片显示
+     */
+    myUrl(num: string): void;
     getMyId(): number;
     private _myId;
     setMcShow(num: number): void;
@@ -185,6 +188,35 @@ declare class BaseConfig<T> {
      * 获取类型数据
      */
     getTypeData(key: any): T;
+}
+declare class DoorShowConfig extends config.BaseConfig<DoorShowTypeData> {
+    constructor();
+    static getInstance(): DoorShowConfig;
+    static init(dataSrc: any): void;
+    /**
+     * 获取到排行榜
+     */
+    static getRank(): any;
+    /**
+     * 获取横竖
+     */
+    static getCow(): any;
+    /**
+     * 开启的才算
+     */
+    static getLen(): number;
+}
+declare class DoorShowTypeData {
+    id: number;
+    name: string;
+    state: number;
+    free: number;
+    color: number;
+    url: string;
+    type: number;
+    moduleName: string;
+    rank: any;
+    open: number;
 }
 declare class CallBackVo {
     handeler: Function;
@@ -395,15 +427,23 @@ declare class btnItem extends fairygui.GButton {
     constructor();
     constructFromResource(): void;
     /**
-     * 图片显示
+     * 对应的id
      */
     myId(num: number): void;
+    /**
+     * 图片显示
+     */
+    myUrl(num: string): void;
     getMyId(): number;
     private _myId;
     /**
-     * 招牌显示
+     * 状态显示
      */
-    setTipShow(num: number): void;
+    setStateShow(num: number): void;
+    /**
+     * 免费显示
+     */
+    setFreeShow(num: number): void;
     setMcShow(num: number): void;
     /**
      * 我的名字
@@ -414,9 +454,10 @@ declare class btnItem extends fairygui.GButton {
     private imgLoadHandler(texture, url);
     private kong;
     private _txt;
-    private tipShow;
     private mc;
     private imag;
+    private c2;
+    private c3;
 }
 declare class SoundManagers {
     /**
@@ -731,6 +772,29 @@ declare class ModuleInfo {
     coreClass: any;
     dataClass: any;
 }
+declare module base {
+    class MoneyBase extends fairygui.GComponent {
+        dispose(): void;
+        constructor(type: string, name: string, left?: number);
+        protected _type: string;
+        protected _$name: string;
+        protected _isLeft: number;
+        /**
+         * 回收
+         */
+        retrieve(): void;
+        cleanAll(): void;
+    }
+    /**
+     * 倒计时
+     */
+    class pulicMoney extends MoneyBase {
+        private _money;
+        private getMoney();
+        setNum(str: string): void;
+        private list;
+    }
+}
 declare module timeUtils {
     class TimeUtils {
         TimeMin: number;
@@ -785,19 +849,13 @@ declare class DoorView extends gui.OvBase {
     private btn100;
     private down;
     open(...args: any[]): void;
+    initView(): void;
     private onChange(e);
-    private getListItemResource(index);
     private iteRenderer(index, item);
     private myId;
-    private nameArr;
-    private mcArr;
-    private tipsArr;
-    private pNum;
     private getRenshu(data);
-    /**
-     * 将热门放在第一位
-     */
-    private changeNum(num);
+    private isFeng;
+    private curdata;
     private onItemClick(e);
     /**
      * 创建头像
@@ -855,6 +913,33 @@ declare class DoorView extends gui.OvBase {
     private _dataFlag;
     private inRoomBack(data);
     private remove();
+    /**
+     * 前端提示
+     */
+    private createTip();
+    /**
+     * 推送展示
+     */
+    private tipShow(data);
+    /**
+     * 显示提示
+     */
+    private showTip();
+    /**
+     * 下一条推送
+     */
+    private nextTip();
+    /*****************************************************************意见反馈*******************************************************************/
+    /**
+     * 文本点击
+     */
+    private txtClick(e);
+    private txtChange(e);
+    private isOver;
+    private tipNum;
+    private tipArr;
+    private c2;
+    private txtInit;
 }
 declare class IconView {
     constructor(v: fairygui.GComponent, myIcon: headIcon);
