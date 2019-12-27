@@ -191,7 +191,7 @@ declare module gui {
     class BaseWindow extends fairygui.Window {
         protected _ui: fairygui.GComponent;
         protected _buttonList: fairygui.GButton[];
-        private _isCenter;
+        protected _isCenter: boolean;
         private _animation;
         private _uiType;
         inSceneQueue: boolean;
@@ -287,10 +287,6 @@ declare module gui {
         setText(index: number, text: any): void;
         getText(index: number): string;
         getTextFiled(index: number): fairygui.GTextField;
-        /**
-         * 设置设配
-         */
-        fullWindow(width?: number, height?: number): void;
         onInit(): void;
         /******************************************************************/
         protected initView(): void;
@@ -371,6 +367,9 @@ declare module gameTool {
     function init(main: DisplayObjectContainer): void;
     var stage: egret.Stage;
     var main: DisplayObjectContainer;
+    var gameContentWH: number[];
+    var gameRotate: boolean;
+    var pToLand: boolean;
     /**
      * 回收列表
      */

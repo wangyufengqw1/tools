@@ -324,7 +324,7 @@ module gui {
     export class BaseWindow extends fairygui.Window {
         protected _ui: fairygui.GComponent;
         protected _buttonList: fairygui.GButton[];
-        private _isCenter: boolean;
+        protected _isCenter: boolean;
         private _animation: UIAnimation;
         private _uiType: number;
         // 是否处于场景队列
@@ -406,14 +406,14 @@ module gui {
             this.initView();
             this.initEvent();
             this.registerButtons(this._ui);
-            this.setSize(gameTool.display.stageW, gameTool.display.stageH);
+            // this.setSize(gameTool.display.stageW, gameTool.display.stageH);
             this.addRelation(this._ui, fairygui.RelationType.Size);
-            if (this._isCenter) {
-                this._ui.x = (gameTool.stage.stageWidth - this._ui.width) * .5;
-                this._ui.y = (gameTool.stage.stageHeight - this._ui.height) * .5;
-                //this.centerOn(fairygui.GRoot.inst, true);
-            }
-            this._ui.setPivot(0.5, 0.5);
+            // if (this._isCenter) {
+            //     this._ui.x = (gameTool.stage.stageWidth - this._ui.width) * .5;
+            //     this._ui.y = (gameTool.stage.stageHeight - this._ui.height) * .5;
+            //     //this.centerOn(fairygui.GRoot.inst, true);
+            // }
+            this._ui.setPivot(0,0);
             delay.executeAllTransact(this);
             if (window) {
 				window.onresize = this.onResize.bind(this);

@@ -31,14 +31,15 @@ module gui {
         }
 
         show(callback, context, ...args): void {
-            this.lastScaleX = this.component.scaleX;
-            this.lastScaleY = this.component.scaleY;
-            this.component.scaleX = 0;
-            this.component.scaleY = 0;
-       //     this.component.alpha  = 0;
+            // this.lastScaleX = this.component.scaleX;
+            // this.lastScaleY = this.component.scaleY;
+            // this.component.scaleX = 0;
+            // this.component.scaleY = 0;
+           this.component.alpha  = 0;
             egret.Tween.get(this.component).to({
-                scaleX:  this.lastScaleX,
-                scaleY:  this.lastScaleY
+                // scaleX:  this.lastScaleX,
+                // scaleY:  this.lastScaleY
+                alpha    :  1
             }, 300, egret.Ease.backOut).wait(100).call(callback, context, args);
         }
 

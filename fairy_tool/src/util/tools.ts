@@ -151,6 +151,9 @@ module gameTool {
 
     export var stage:egret.Stage;
     export var main:DisplayObjectContainer;
+    export var gameContentWH:number[];   //游戏内容长宽
+    export var gameRotate:boolean;       //1代表旋转
+    export var pToLand   :boolean;       //竖屏用作横屏显示 
     /**
      * 回收列表
      */

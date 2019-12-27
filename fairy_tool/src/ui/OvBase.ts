@@ -64,23 +64,23 @@ module gui {
             return this._textList[index];
         }
 
-        /**
-         * 设置设配
-         */
-        fullWindow(width: number = 750, height: number = 1334) {
-            // let w = document.body.clientWidth;
-            // let h = document.body.clientHeight;
-            let h = gameTool.stage.stageHeight;
-            let w = gameTool.stage.stageWidth;
-            let scaleX = width / w;
-            let scaleY = height / h;
-            if (scaleX < scaleY) {
-                this._ui.setSize(width, h * scaleX);
-            } else {
-                this._ui.setSize(w * scaleY, height);
-            }
-            this._ui.setXY(0, 0);
-        }
+        // /**
+        //  * 设置设配
+        //  */
+        // fullWindow(width: number = 750, height: number = 1334) {
+        //     // let w = document.body.clientWidth;
+        //     // let h = document.body.clientHeight;
+        //     let h = gameTool.stage.stageHeight;
+        //     let w = gameTool.stage.stageWidth;
+        //     let scaleX = width / w;
+        //     let scaleY = height / h;
+        //     if (scaleX < scaleY) {
+        //         this._ui.setSize(width, h * scaleX);
+        //     } else {
+        //         this._ui.setSize(w * scaleY, height);
+        //     }
+        //     this._ui.setXY(0, 0);
+        // }
         onInit(): void {
             if (fairygui.UIPackage.getByName(this._pkgName) == null) {
                 return;
@@ -148,21 +148,44 @@ module gui {
             if(!this._ui){
                 return ;
             }
+            this.mainView.x  = 0;
+            this.mainView.y  = 0;
             let clientHeight = document.documentElement.clientHeight;
-            let clientWidth = document.documentElement.clientWidth;
-            let h = gameTool.stage.stageHeight;
-            let w = gameTool.stage.stageWidth;
-            let scaleX = this.mainView.width / w;
-            let scaleY = this.mainView.height / h;
-            if (scaleX < scaleY) {
-                this._ui.setScale(h / this.mainView.height, h / this.mainView.height);
+            let clientWidth  = document.documentElement.clientWidth;
+            let useHeight    = clientHeight;                   //当前使用的高
+            let useWidth     = clientWidth;                    //当前使用的宽
+            let w            = gameTool.gameContentWH[0];      //游戏内容的长宽
+            let h            = gameTool.gameContentWH[1];      //游戏内容的长宽
+            if(gameTool.pToLand){                       //长宽需要对调 (手机上)
+                //竖屏 显示横屏
+                if(gameTool.gameRotate){   //当前已经是旋转的了
+                    this.mainView.rotation = 0;
+                }else{
+                    useHeight = clientWidth;
+                    useWidth = clientHeight;
+                    this.mainView.rotation = 90;
+                    this.mainView.x = useHeight;
+                }
+            }else{
+                //都是横屏 都是竖屏
+                this.mainView.rotation = 0;
             }
-            if(this._ui.y>0){
-                this._ui.setXY(this._ui.x,0);
+            let perw         = useWidth/w;                  //宽的比例
+            let tempH        = h*perw                       //根据宽的比例求对应的高
+            let perH         = useHeight/h;                 //高的比例
+            let tempW        = w*perH;                      //根据高的比例求对应的宽
+            if(tempH<=useHeight){
+                this._ui.setScale(perw,perw);
+            }else if(tempW<=useWidth){
+                this._ui.setScale(perH,perH);
             }
-            if(this._ui.x>0){
-                this._ui.setXY(0,this._ui.y);
-            }           
+            var sc = this._ui.scaleX;  //缩放比例
+            if(this._isCenter){
+                this._ui.x = (useWidth - this._ui.width*sc) * .5;
+                this._ui.y = (useHeight - this._ui.height*sc) * .5;
+            }
+            this._bg.width = useWidth;
+            this._bg.height = useHeight;        
         }
 
         /******************************************************************/

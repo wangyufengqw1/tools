@@ -549,14 +549,14 @@ var gui;
             this.initView();
             this.initEvent();
             this.registerButtons(this._ui);
-            this.setSize(gameTool.display.stageW, gameTool.display.stageH);
+            // this.setSize(gameTool.display.stageW, gameTool.display.stageH);
             this.addRelation(this._ui, fairygui.RelationType.Size);
-            if (this._isCenter) {
-                this._ui.x = (gameTool.stage.stageWidth - this._ui.width) * .5;
-                this._ui.y = (gameTool.stage.stageHeight - this._ui.height) * .5;
-                //this.centerOn(fairygui.GRoot.inst, true);
-            }
-            this._ui.setPivot(0.5, 0.5);
+            // if (this._isCenter) {
+            //     this._ui.x = (gameTool.stage.stageWidth - this._ui.width) * .5;
+            //     this._ui.y = (gameTool.stage.stageHeight - this._ui.height) * .5;
+            //     //this.centerOn(fairygui.GRoot.inst, true);
+            // }
+            this._ui.setPivot(0, 0);
             delay.executeAllTransact(this);
             if (window) {
                 window.onresize = this.onResize.bind(this);
@@ -818,26 +818,23 @@ var gui;
         OvBase.prototype.getTextFiled = function (index) {
             return this._textList[index];
         };
-        /**
-         * 设置设配
-         */
-        OvBase.prototype.fullWindow = function (width, height) {
-            if (width === void 0) { width = 750; }
-            if (height === void 0) { height = 1334; }
-            // let w = document.body.clientWidth;
-            // let h = document.body.clientHeight;
-            var h = gameTool.stage.stageHeight;
-            var w = gameTool.stage.stageWidth;
-            var scaleX = width / w;
-            var scaleY = height / h;
-            if (scaleX < scaleY) {
-                this._ui.setSize(width, h * scaleX);
-            }
-            else {
-                this._ui.setSize(w * scaleY, height);
-            }
-            this._ui.setXY(0, 0);
-        };
+        // /**
+        //  * 设置设配
+        //  */
+        // fullWindow(width: number = 750, height: number = 1334) {
+        //     // let w = document.body.clientWidth;
+        //     // let h = document.body.clientHeight;
+        //     let h = gameTool.stage.stageHeight;
+        //     let w = gameTool.stage.stageWidth;
+        //     let scaleX = width / w;
+        //     let scaleY = height / h;
+        //     if (scaleX < scaleY) {
+        //         this._ui.setSize(width, h * scaleX);
+        //     } else {
+        //         this._ui.setSize(w * scaleY, height);
+        //     }
+        //     this._ui.setXY(0, 0);
+        // }
         OvBase.prototype.onInit = function () {
             if (fairygui.UIPackage.getByName(this._pkgName) == null) {
                 return;
@@ -897,21 +894,47 @@ var gui;
             if (!this._ui) {
                 return;
             }
+            this.mainView.x = 0;
+            this.mainView.y = 0;
             var clientHeight = document.documentElement.clientHeight;
             var clientWidth = document.documentElement.clientWidth;
-            var h = gameTool.stage.stageHeight;
-            var w = gameTool.stage.stageWidth;
-            var scaleX = this.mainView.width / w;
-            var scaleY = this.mainView.height / h;
-            if (scaleX < scaleY) {
-                this._ui.setScale(h / this.mainView.height, h / this.mainView.height);
+            var useHeight = clientHeight; //当前使用的高
+            var useWidth = clientWidth; //当前使用的宽
+            var w = gameTool.gameContentWH[0]; //游戏内容的长宽
+            var h = gameTool.gameContentWH[1]; //游戏内容的长宽
+            if (gameTool.pToLand) {
+                //竖屏 显示横屏
+                if (gameTool.gameRotate) {
+                    this.mainView.rotation = 0;
+                }
+                else {
+                    useHeight = clientWidth;
+                    useWidth = clientHeight;
+                    this.mainView.rotation = 90;
+                    this.mainView.x = useHeight;
+                }
             }
-            if (this._ui.y > 0) {
-                this._ui.setXY(this._ui.x, 0);
+            else {
+                //都是横屏 都是竖屏
+                this.mainView.rotation = 0;
             }
-            if (this._ui.x > 0) {
-                this._ui.setXY(0, this._ui.y);
+            var perw = useWidth / w; //宽的比例
+            var tempH = h * perw; //根据宽的比例求对应的高
+            var perH = useHeight / h; //高的比例
+            var tempW = w * perH; //根据高的比例求对应的宽
+            if (tempH <= useHeight) {
+                this._ui.setScale(perw, perw);
             }
+            else if (tempW <= useWidth) {
+                this._ui.setScale(perH, perH);
+            }
+            var sc = this._ui.scaleX; //缩放比例
+            if (this._isCenter) {
+                this._ui.x = (useWidth - this._ui.width * sc) * .5;
+                this._ui.y = (useHeight - this._ui.height * sc) * .5;
+            }
+            this._bg.width = useWidth;
+            this._bg.height = useHeight;
         };
         /******************************************************************/
         OvBase.prototype.loadResComplete = function () {
@@ -4128,14 +4151,15 @@ var gui;
             for (var _i = 2; _i < arguments.length; _i++) {
                 args[_i - 2] = arguments[_i];
             }
-            this.lastScaleX = this.component.scaleX;
-            this.lastScaleY = this.component.scaleY;
-            this.component.scaleX = 0;
-            this.component.scaleY = 0;
-            //     this.component.alpha  = 0;
+            // this.lastScaleX = this.component.scaleX;
+            // this.lastScaleY = this.component.scaleY;
+            // this.component.scaleX = 0;
+            // this.component.scaleY = 0;
+            this.component.alpha = 0;
             egret.Tween.get(this.component).to({
-                scaleX: this.lastScaleX,
-                scaleY: this.lastScaleY
+                // scaleX:  this.lastScaleX,
+                // scaleY:  this.lastScaleY
+                alpha: 1
             }, 300, egret.Ease.backOut).wait(100).call(callback, context, args);
         };
         BoxAnimation.prototype.close = function (callback, context) {
