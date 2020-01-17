@@ -369,7 +369,8 @@ declare module gameTool {
     var main: DisplayObjectContainer;
     var gameContentWH: number[];
     var gameRotate: boolean;
-    var pToLand: boolean;
+    var pToLand: number;
+    var isPc: boolean;
     /**
      * 回收列表
      */

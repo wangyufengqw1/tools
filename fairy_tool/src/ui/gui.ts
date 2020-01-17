@@ -408,16 +408,9 @@ module gui {
             this.registerButtons(this._ui);
             // this.setSize(gameTool.display.stageW, gameTool.display.stageH);
             this.addRelation(this._ui, fairygui.RelationType.Size);
-            // if (this._isCenter) {
-            //     this._ui.x = (gameTool.stage.stageWidth - this._ui.width) * .5;
-            //     this._ui.y = (gameTool.stage.stageHeight - this._ui.height) * .5;
-            //     //this.centerOn(fairygui.GRoot.inst, true);
-            // }
             this._ui.setPivot(0,0);
             delay.executeAllTransact(this);
-            if (window) {
-				window.onresize = this.onResize.bind(this);
-			}
+            notification.addNotification("onResize",this.onResize,this);
         }
 
         onResize():void

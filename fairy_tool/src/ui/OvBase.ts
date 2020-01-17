@@ -156,15 +156,20 @@ module gui {
             let useWidth     = clientWidth;                    //当前使用的宽
             let w            = gameTool.gameContentWH[0];      //游戏内容的长宽
             let h            = gameTool.gameContentWH[1];      //游戏内容的长宽
-            if(gameTool.pToLand){                       //长宽需要对调 (手机上)
-                //竖屏 显示横屏
-                if(gameTool.gameRotate){   //当前已经是旋转的了
-                    this.mainView.rotation = 0;
-                }else{
+            
+            if(gameTool.pToLand == 1){                       //长宽需要对调 (手机上)
+                if(clientHeight>clientWidth){           //长宽对调了 则
                     useHeight = clientWidth;
                     useWidth = clientHeight;
+                }
+                //竖屏 显示横屏
+                if(gameTool.gameRotate){   //旋转到横屏 则角度不变 (这时一般长宽不变)
+                    this.mainView.rotation = 0;
+                }else if(!gameTool.gameRotate && clientHeight>clientWidth){ //旋转到竖屏  则角度变化90°  (这时一般长宽对调)
                     this.mainView.rotation = 90;
                     this.mainView.x = useHeight;
+                }else{ //特殊情况  （旋转到了竖屏 但 长宽木有变化 则以长宽为基础角度也不变）
+                    this.mainView.rotation = 0;
                 }
             }else{
                 //都是横屏 都是竖屏
@@ -184,8 +189,15 @@ module gui {
                 this._ui.x = (useWidth - this._ui.width*sc) * .5;
                 this._ui.y = (useHeight - this._ui.height*sc) * .5;
             }
-            this._bg.width = useWidth;
-            this._bg.height = useHeight;        
+
+            if(gameTool.isPc && gameTool.pToLand == 2){                   //是pc并且是竖屏 则不进行全屏
+                this._bg.setScale(sc,sc);
+                this._bg.x = (useWidth - this._bg.width*sc) * .5;
+                this._bg.y = (useHeight - this._bg.height*sc) * .5;
+            }else{
+                this._bg.width = useWidth;
+                this._bg.height = useHeight;
+            }       
         }
 
         /******************************************************************/

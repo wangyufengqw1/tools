@@ -32,291 +32,52 @@ var LoadViewBase = (function (_super) {
     return LoadViewBase;
 }(loadUI.BaseLoadingUI));
 __reflect(LoadViewBase.prototype, "LoadViewBase");
-var PublicAPi = (function () {
-    function PublicAPi() {
-        this.manVoice = [1, 3, 4, 6, 8, 10.13, 18]; //男性头像
-        this.gameEvebt = {};
-        this.regedEvebt = {};
-        this.initEvent();
-    }
-    /**
-     * 全局监听的消息
-     */
-    PublicAPi.prototype.initEvent = function () {
-        this.regedEvebt[GameEvent.kickout] = this.kickoutF.bind(this);
-        //      this.regedEvebt[GameEvent.xiantao] = this.xiantao.bind(this);
-        this.regedEvebt[GameEvent.diaoxian] = this.diaoxian.bind(this);
-        this.regedEvebt[GameEvent.istanchuang] = this.isTanChuang.bind(this);
-        this.eventInit();
-    };
-    /**
-     *  弹窗显示
-     */
-    PublicAPi.prototype.isTanChuang = function (str) {
-        this.openStr = str;
-        notification.postNotification(GameEvent.istanchuang); //发送弹窗推送
-    };
-    /**
-     * 后端掉线询问
-     */
-    PublicAPi.prototype.diaoxian = function () {
-        api.GlobalAPI.webSocket.request(GameEvent.Getdiaoxianjiance, {});
-    };
-    // /**
-    //  * 仙桃  全服仙桃推送
-    //  */
-    // private xiantao(str:string):void
-    // {
-    //     let item  = gameTool.poolList.getInstance(TipShowForAll,gameTool.stage.width,gameTool.stage.height/10,str);
-    //     gui.addGComponentToStage(item,define.WindowType.TIP_LAYER);
-    // }
-    /**
-     * 掉线通知
-     */
-    PublicAPi.prototype.kickoutF = function (data) {
-        if (data == "账户已失效，请重新连接") {
-            api.GlobalAPI.publicApi.isOnlie = 4;
-            this.eventRemove();
-            api.createAlert(data, 1, function (type) {
-                gui.removeAllView();
-            });
+var api;
+(function (api) {
+    var UserData = (function () {
+        function UserData() {
+            this.$coins = 0;
         }
-        else if (data == "网络已断，请重新连接") {
-            api.GlobalAPI.publicApi.isOnlie = 3;
-            api.createAlert(data, 3);
-        }
-    };
-    /**
-    * 后端消息接听初始化
-    */
-    PublicAPi.prototype.eventInit = function () {
-        if (this.regedEvebt != null) {
-            for (var o in this.regedEvebt) {
-                api.GlobalAPI.webSocket.on(o, this.regedEvebt[o]);
-            }
-        }
-    };
-    /**
-     * 消息移除
-     */
-    PublicAPi.prototype.eventRemove = function () {
-        if (this.regedEvebt != null) {
-            for (var o in this.regedEvebt) {
-                api.GlobalAPI.webSocket.off(o, this.regedEvebt[o]);
-            }
-        }
-    };
-    /**
-     * 添加后端消息监控
-     */
-    PublicAPi.prototype.addGameEvebt = function (name, k, _fun, arg) {
-        if (this.gameEvebt[name] == null) {
-            this.gameEvebt[name] = [];
-        }
-        this.gameEvebt[name][k] = _fun.bind(arg);
-    };
-    /**
-     * 游戏初始化
-     */
-    PublicAPi.prototype.gameEvebtInit = function (name) {
-        if (this.gameEvebt[name] != null) {
-            for (var o in this.gameEvebt[name]) {
-                api.GlobalAPI.webSocket.on(o, this.gameEvebt[name][o]);
-            }
-        }
-    };
-    /**
-     * 移除游戏中的消息
-     */
-    PublicAPi.prototype.removeGameEvbt = function (name) {
-        if (this.gameEvebt[name] != null) {
-            for (var o in this.gameEvebt[name]) {
-                api.GlobalAPI.webSocket.off(o, this.gameEvebt[name][o]);
-            }
-        }
-    };
-    PublicAPi.prototype.allRemoveEvbt = function () {
-        for (var name in this.gameEvebt) {
-            for (var o in this.gameEvebt[name]) {
-                api.GlobalAPI.webSocket.off(o, this.gameEvebt[name][o]);
-            }
-        }
-    };
-    PublicAPi.prototype.dispose = function () {
-        this.allRemoveEvbt();
-        this.eventRemove();
-        this.regedEvebt = null;
-        this.gameEvebt = null;
-    };
-    /**
-     * 替换名字
-     */
-    PublicAPi.prototype.changeName = function (str) {
-        var name = "";
-        var len = str.length;
-        for (var i = 0; i < len; i++) {
-            if (i == Math.floor(len / 2 - 1) || i == Math.floor(len / 2) || i == Math.floor(len / 2 + 1)) {
-                name += "*";
-            }
-            else {
-                name += str.charAt(i);
-            }
-        }
-        return name;
-    };
-    /**
-    * 替换名字
-    */
-    PublicAPi.prototype.changeMoney = function (num) {
-        var atr = "";
-        var str = num.toString();
-        for (var x = 0; x < str.length; x++) {
-            atr += str.charAt(x);
-            if ((str.length - x) % 3 == 1 && x != str.length - 1) {
-                atr += ",";
-            }
-        }
-        return atr;
-    };
-    /**
-     * 交换位置 a是需要的 b是替换的
-     */
-    PublicAPi.prototype.sweepChangeCom = function (a, b) {
-        a.x = b.x;
-        a.y = b.y;
-        if (b.parent) {
-            var index = b.parent.getChildIndex(b);
-            b.parent.addChildAt(a, index);
-            b.parent.removeChild(b);
-            b = null;
-        }
-    };
-    /**
-     * 登录界面继续游戏
-     */
-    PublicAPi.prototype.contineGame = function (data) {
-        switch (data["which"]) {
-            case 1://红包
-                api.GlobalAPI.moduleManager.openModule("redProject");
-                //     changeBackground(1,1);
-                gameTool.stage.setContentSize(1920, 1080);
-                gameTool.stage.orientation = egret.OrientationMode.LANDSCAPE;
-                break;
-            case 4://扫雷
-                //      changeBackground(1,1);
-                gameTool.stage.orientation = egret.OrientationMode.LANDSCAPE;
-                gameTool.stage.setContentSize(1920, 1080);
-                api.GlobalAPI.moduleManager.openModule("sweepGame");
-                break;
-            case 5://大圣
-                //      changeBackground(3,1);
-                api.GlobalAPI.moduleManager.openModule("gzHero");
-                break;
-            case 6://飞刀
-                //     changeBackground(4,1);
-                api.GlobalAPI.moduleManager.openModule("feidao");
-                break;
-        }
-    };
-    /**
-     * 播放该物件下的所有动画
-     */
-    PublicAPi.prototype.playAllMc = function (value, callBack) {
-        if (callBack === void 0) { callBack = null; }
-        var callBackBoolean = false; //只用其中一个动画来回调
-        for (var i = 0; i < value.numChildren; i++) {
-            var sp = value.getChildAt(i);
-            if (sp instanceof fairygui.GComponent) {
-                if (sp.getTransition("t0")) {
-                    if (!callBackBoolean && callBack != null) {
-                        callBackBoolean = true;
-                        sp.getTransition("t0").play(function () {
-                            callBack.apply();
-                        }, this);
-                    }
-                    else {
-                        sp.getTransition("t0").play();
-                    }
-                }
-            }
-        }
-    };
-    /**
-     * 播放动画
-     */
-    PublicAPi.prototype.playMc = function (value, callBack) {
-        if (callBack === void 0) { callBack = null; }
-        if (value.getTransition("t0")) {
-            if (callBack != null) {
-                value.getTransition("t0").play(function () {
-                    callBack.apply();
-                }, this);
-            }
-            else {
-                value.getTransition("t0").play();
-            }
-        }
-    };
-    PublicAPi.prototype.comebackDoor = function () {
-        if (isPc()) {
-            gui.addScene(PcDoorView);
-        }
-        else {
-            gui.addScene(DoorView);
-        }
-    };
-    /**
-    * 公告显示
-    */
-    PublicAPi.prototype.doorTipShow = function (str) {
-        var restr = "<font color='#E5522E'>[公告]</font> 恭喜";
-        var strs = str.split("-");
-        restr += "<font color='#F7C538'>" + this.changeName(strs[1]) + "</font>" + "在";
-        restr += "<font color='#E5522E'>" + strs[0] + strs[2] + "</font>";
-        // for(let i : number = 0;i<strs.length-1;i++){
-        //     restr+=strs[i];
-        // }
-        //如果最后一个字符串为""; 则获取皮肤
-        if (strs[strs.length - 1] == "") {
-            restr += "<font color='#F7C538'>获取皮肤</font>";
-        }
-        else {
-            restr += "获得<font color='#F7C538'>" + strs[strs.length - 1] + "金币</font>";
-        }
-        return restr;
-    };
-    /**
-     * 将玩家的信息排在第一位
-     */
-    PublicAPi.prototype.firstMyInfomation = function (value) {
-        if (value && value.length > 0) {
-            var t;
-            for (var i = 0; i < value.length; i++) {
-                if (value[i]["open_id"] == api.GlobalAPI.userData.getOpenId()) {
-                    t = value[i];
-                    value[i] = value[0];
-                    value[0] = t;
-                }
-            }
-        }
-        return value;
-    };
-    PublicAPi.prototype.rankSort = function (data, arr) {
-        for (var i = arr.length - 1; i >= 0; i--) {
-            var t = 0;
-            var num = arr[i]; //对应的下标
-            var doordata = DoorShowConfig.getInstance().getTypeData(num);
-            if (data[doordata.name] == 0) {
-                t = arr[i];
-                arr[i] = arr[arr.length - 1];
-                arr[arr.length - 1] = t;
-            }
-        }
-        return arr;
-    };
-    return PublicAPi;
-}());
-__reflect(PublicAPi.prototype, "PublicAPi");
+        //玩家名称
+        UserData.prototype.setUserName = function (value) {
+            this.$userName = value;
+        };
+        ;
+        UserData.prototype.getUserName = function () {
+            return this.$userName;
+        };
+        ;
+        //玩家金币           
+        UserData.prototype.setUserCoins = function (value) {
+            this.$coins = value;
+        };
+        ;
+        UserData.prototype.getUserCoins = function () {
+            return this.$coins;
+        };
+        ;
+        //玩家头像
+        UserData.prototype.setUserIcon = function (value) {
+            this.$icon = value;
+        };
+        ;
+        UserData.prototype.getUserIcon = function () {
+            return this.$icon;
+        };
+        ;
+        UserData.prototype.getOpenId = function () {
+            return this.$openId;
+        };
+        ;
+        UserData.prototype.setOpenId = function (value) {
+            this.$openId = value;
+        };
+        ;
+        return UserData;
+    }());
+    api.UserData = UserData;
+    __reflect(UserData.prototype, "api.UserData", ["api.IUserData"]);
+})(api || (api = {}));
 var commonBtn = (function (_super) {
     __extends(commonBtn, _super);
     function commonBtn() {
@@ -1242,52 +1003,13 @@ var api;
     api.Network = Network;
     __reflect(Network.prototype, "api.Network", ["api.INetWork"]);
 })(api || (api = {}));
-var api;
-(function (api) {
-    var UserData = (function () {
-        function UserData() {
-            this.$coins = 0;
-        }
-        //玩家名称
-        UserData.prototype.setUserName = function (value) {
-            this.$userName = value;
-        };
-        ;
-        UserData.prototype.getUserName = function () {
-            return this.$userName;
-        };
-        ;
-        //玩家金币           
-        UserData.prototype.setUserCoins = function (value) {
-            this.$coins = value;
-        };
-        ;
-        UserData.prototype.getUserCoins = function () {
-            return this.$coins;
-        };
-        ;
-        //玩家头像
-        UserData.prototype.setUserIcon = function (value) {
-            this.$icon = value;
-        };
-        ;
-        UserData.prototype.getUserIcon = function () {
-            return this.$icon;
-        };
-        ;
-        UserData.prototype.getOpenId = function () {
-            return this.$openId;
-        };
-        ;
-        UserData.prototype.setOpenId = function (value) {
-            this.$openId = value;
-        };
-        ;
-        return UserData;
-    }());
-    api.UserData = UserData;
-    __reflect(UserData.prototype, "api.UserData", ["api.IUserData"]);
-})(api || (api = {}));
+var ItemApi = (function () {
+    function ItemApi() {
+    }
+    ItemApi.moneyEx = 100;
+    return ItemApi;
+}());
+__reflect(ItemApi.prototype, "ItemApi");
 var btnItem = (function (_super) {
     __extends(btnItem, _super);
     function btnItem() {
@@ -1359,6 +1081,291 @@ var btnItem = (function (_super) {
     return btnItem;
 }(fairygui.GButton));
 __reflect(btnItem.prototype, "btnItem");
+var PublicAPi = (function () {
+    function PublicAPi() {
+        this.manVoice = [1, 3, 4, 6, 8, 10.13, 18]; //男性头像
+        this.gameEvebt = {};
+        this.regedEvebt = {};
+        this.initEvent();
+    }
+    /**
+     * 全局监听的消息
+     */
+    PublicAPi.prototype.initEvent = function () {
+        this.regedEvebt[GameEvent.kickout] = this.kickoutF.bind(this);
+        //      this.regedEvebt[GameEvent.xiantao] = this.xiantao.bind(this);
+        this.regedEvebt[GameEvent.diaoxian] = this.diaoxian.bind(this);
+        this.regedEvebt[GameEvent.istanchuang] = this.isTanChuang.bind(this);
+        this.eventInit();
+    };
+    /**
+     *  弹窗显示
+     */
+    PublicAPi.prototype.isTanChuang = function (str) {
+        this.openStr = str;
+        notification.postNotification(GameEvent.istanchuang); //发送弹窗推送
+    };
+    /**
+     * 后端掉线询问
+     */
+    PublicAPi.prototype.diaoxian = function () {
+        api.GlobalAPI.webSocket.request(GameEvent.Getdiaoxianjiance, {});
+    };
+    // /**
+    //  * 仙桃  全服仙桃推送
+    //  */
+    // private xiantao(str:string):void
+    // {
+    //     let item  = gameTool.poolList.getInstance(TipShowForAll,gameTool.stage.width,gameTool.stage.height/10,str);
+    //     gui.addGComponentToStage(item,define.WindowType.TIP_LAYER);
+    // }
+    /**
+     * 掉线通知
+     */
+    PublicAPi.prototype.kickoutF = function (data) {
+        if (data == "账户已失效，请重新连接") {
+            api.GlobalAPI.publicApi.isOnlie = 4;
+            this.eventRemove();
+            api.createAlert(data, 1, function (type) {
+                gui.removeAllView();
+            });
+        }
+        else if (data == "网络已断，请重新连接") {
+            api.GlobalAPI.publicApi.isOnlie = 3;
+            api.createAlert(data, 3);
+        }
+    };
+    /**
+    * 后端消息接听初始化
+    */
+    PublicAPi.prototype.eventInit = function () {
+        if (this.regedEvebt != null) {
+            for (var o in this.regedEvebt) {
+                api.GlobalAPI.webSocket.on(o, this.regedEvebt[o]);
+            }
+        }
+    };
+    /**
+     * 消息移除
+     */
+    PublicAPi.prototype.eventRemove = function () {
+        if (this.regedEvebt != null) {
+            for (var o in this.regedEvebt) {
+                api.GlobalAPI.webSocket.off(o, this.regedEvebt[o]);
+            }
+        }
+    };
+    /**
+     * 添加后端消息监控
+     */
+    PublicAPi.prototype.addGameEvebt = function (name, k, _fun, arg) {
+        if (this.gameEvebt[name] == null) {
+            this.gameEvebt[name] = [];
+        }
+        this.gameEvebt[name][k] = _fun.bind(arg);
+    };
+    /**
+     * 游戏初始化
+     */
+    PublicAPi.prototype.gameEvebtInit = function (name) {
+        if (this.gameEvebt[name] != null) {
+            for (var o in this.gameEvebt[name]) {
+                api.GlobalAPI.webSocket.on(o, this.gameEvebt[name][o]);
+            }
+        }
+    };
+    /**
+     * 移除游戏中的消息
+     */
+    PublicAPi.prototype.removeGameEvbt = function (name) {
+        if (this.gameEvebt[name] != null) {
+            for (var o in this.gameEvebt[name]) {
+                api.GlobalAPI.webSocket.off(o, this.gameEvebt[name][o]);
+            }
+        }
+    };
+    PublicAPi.prototype.allRemoveEvbt = function () {
+        for (var name in this.gameEvebt) {
+            for (var o in this.gameEvebt[name]) {
+                api.GlobalAPI.webSocket.off(o, this.gameEvebt[name][o]);
+            }
+        }
+    };
+    PublicAPi.prototype.dispose = function () {
+        this.allRemoveEvbt();
+        this.eventRemove();
+        this.regedEvebt = null;
+        this.gameEvebt = null;
+    };
+    /**
+     * 替换名字
+     */
+    PublicAPi.prototype.changeName = function (str) {
+        var name = "";
+        var len = str.length;
+        for (var i = 0; i < len; i++) {
+            if (i == Math.floor(len / 2 - 1) || i == Math.floor(len / 2) || i == Math.floor(len / 2 + 1)) {
+                name += "*";
+            }
+            else {
+                name += str.charAt(i);
+            }
+        }
+        return name;
+    };
+    /**
+    * 替换名字
+    */
+    PublicAPi.prototype.changeMoney = function (num) {
+        var atr = "";
+        var str = num.toString();
+        for (var x = 0; x < str.length; x++) {
+            atr += str.charAt(x);
+            if ((str.length - x) % 3 == 1 && x != str.length - 1) {
+                atr += ",";
+            }
+        }
+        return atr;
+    };
+    /**
+     * 交换位置 a是需要的 b是替换的
+     */
+    PublicAPi.prototype.sweepChangeCom = function (a, b) {
+        a.x = b.x;
+        a.y = b.y;
+        if (b.parent) {
+            var index = b.parent.getChildIndex(b);
+            b.parent.addChildAt(a, index);
+            b.parent.removeChild(b);
+            b = null;
+        }
+    };
+    /**
+     * 登录界面继续游戏
+     */
+    PublicAPi.prototype.contineGame = function (data) {
+        switch (data["which"]) {
+            case 1://红包
+                api.GlobalAPI.moduleManager.openModule("redProject");
+                //     changeBackground(1,1);
+                gameTool.stage.setContentSize(1920, 1080);
+                gameTool.stage.orientation = egret.OrientationMode.LANDSCAPE;
+                break;
+            case 4://扫雷
+                //      changeBackground(1,1);
+                gameTool.stage.orientation = egret.OrientationMode.LANDSCAPE;
+                gameTool.stage.setContentSize(1920, 1080);
+                api.GlobalAPI.moduleManager.openModule("sweepGame");
+                break;
+            case 5://大圣
+                //      changeBackground(3,1);
+                api.GlobalAPI.moduleManager.openModule("gzHero");
+                break;
+            case 6://飞刀
+                //     changeBackground(4,1);
+                api.GlobalAPI.moduleManager.openModule("feidao");
+                break;
+        }
+    };
+    /**
+     * 播放该物件下的所有动画
+     */
+    PublicAPi.prototype.playAllMc = function (value, callBack) {
+        if (callBack === void 0) { callBack = null; }
+        var callBackBoolean = false; //只用其中一个动画来回调
+        for (var i = 0; i < value.numChildren; i++) {
+            var sp = value.getChildAt(i);
+            if (sp instanceof fairygui.GComponent) {
+                if (sp.getTransition("t0")) {
+                    if (!callBackBoolean && callBack != null) {
+                        callBackBoolean = true;
+                        sp.getTransition("t0").play(function () {
+                            callBack.apply();
+                        }, this);
+                    }
+                    else {
+                        sp.getTransition("t0").play();
+                    }
+                }
+            }
+        }
+    };
+    /**
+     * 播放动画
+     */
+    PublicAPi.prototype.playMc = function (value, callBack) {
+        if (callBack === void 0) { callBack = null; }
+        if (value.getTransition("t0")) {
+            if (callBack != null) {
+                value.getTransition("t0").play(function () {
+                    callBack.apply();
+                }, this);
+            }
+            else {
+                value.getTransition("t0").play();
+            }
+        }
+    };
+    PublicAPi.prototype.comebackDoor = function () {
+        if (isPc()) {
+            gui.addScene(PcDoorView);
+        }
+        else {
+            gui.addScene(DoorView);
+        }
+    };
+    /**
+    * 公告显示
+    */
+    PublicAPi.prototype.doorTipShow = function (str) {
+        var restr = "<font color='#E5522E'>[公告]</font> 恭喜";
+        var strs = str.split("-");
+        restr += "<font color='#F7C538'>" + this.changeName(strs[1]) + "</font>" + "在";
+        restr += "<font color='#E5522E'>" + strs[0] + strs[2] + "</font>";
+        // for(let i : number = 0;i<strs.length-1;i++){
+        //     restr+=strs[i];
+        // }
+        //如果最后一个字符串为""; 则获取皮肤
+        if (strs[strs.length - 1] == "") {
+            restr += "<font color='#F7C538'>获取皮肤</font>";
+        }
+        else {
+            restr += "获得<font color='#F7C538'>" + strs[strs.length - 1] + "金币</font>";
+        }
+        return restr;
+    };
+    /**
+     * 将玩家的信息排在第一位
+     */
+    PublicAPi.prototype.firstMyInfomation = function (value) {
+        if (value && value.length > 0) {
+            var t;
+            for (var i = 0; i < value.length; i++) {
+                if (value[i]["open_id"] == api.GlobalAPI.userData.getOpenId()) {
+                    t = value[i];
+                    value[i] = value[0];
+                    value[0] = t;
+                }
+            }
+        }
+        return value;
+    };
+    PublicAPi.prototype.rankSort = function (data, arr) {
+        for (var i = arr.length - 1; i >= 0; i--) {
+            var t = 0;
+            var num = arr[i]; //对应的下标
+            var doordata = DoorShowConfig.getInstance().getTypeData(num);
+            if (data[doordata.name] == 0) {
+                t = arr[i];
+                arr[i] = arr[arr.length - 1];
+                arr[arr.length - 1] = t;
+            }
+        }
+        return arr;
+    };
+    return PublicAPi;
+}());
+__reflect(PublicAPi.prototype, "PublicAPi");
 var SoundManagers = (function () {
     function SoundManagers(stage) {
         /**

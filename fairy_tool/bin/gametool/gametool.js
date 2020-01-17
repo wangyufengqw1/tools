@@ -551,16 +551,9 @@ var gui;
             this.registerButtons(this._ui);
             // this.setSize(gameTool.display.stageW, gameTool.display.stageH);
             this.addRelation(this._ui, fairygui.RelationType.Size);
-            // if (this._isCenter) {
-            //     this._ui.x = (gameTool.stage.stageWidth - this._ui.width) * .5;
-            //     this._ui.y = (gameTool.stage.stageHeight - this._ui.height) * .5;
-            //     //this.centerOn(fairygui.GRoot.inst, true);
-            // }
             this._ui.setPivot(0, 0);
             delay.executeAllTransact(this);
-            if (window) {
-                window.onresize = this.onResize.bind(this);
-            }
+            notification.addNotification("onResize", this.onResize, this);
         };
         BaseWindow.prototype.onResize = function () {
         };
@@ -902,16 +895,21 @@ var gui;
             var useWidth = clientWidth; //当前使用的宽
             var w = gameTool.gameContentWH[0]; //游戏内容的长宽
             var h = gameTool.gameContentWH[1]; //游戏内容的长宽
-            if (gameTool.pToLand) {
+            if (gameTool.pToLand == 1) {
+                if (clientHeight > clientWidth) {
+                    useHeight = clientWidth;
+                    useWidth = clientHeight;
+                }
                 //竖屏 显示横屏
                 if (gameTool.gameRotate) {
                     this.mainView.rotation = 0;
                 }
-                else {
-                    useHeight = clientWidth;
-                    useWidth = clientHeight;
+                else if (!gameTool.gameRotate && clientHeight > clientWidth) {
                     this.mainView.rotation = 90;
                     this.mainView.x = useHeight;
+                }
+                else {
+                    this.mainView.rotation = 0;
                 }
             }
             else {
@@ -933,8 +931,15 @@ var gui;
                 this._ui.x = (useWidth - this._ui.width * sc) * .5;
                 this._ui.y = (useHeight - this._ui.height * sc) * .5;
             }
-            this._bg.width = useWidth;
-            this._bg.height = useHeight;
+            if (gameTool.isPc && gameTool.pToLand == 2) {
+                this._bg.setScale(sc, sc);
+                this._bg.x = (useWidth - this._bg.width * sc) * .5;
+                this._bg.y = (useHeight - this._bg.height * sc) * .5;
+            }
+            else {
+                this._bg.width = useWidth;
+                this._bg.height = useHeight;
+            }
         };
         /******************************************************************/
         OvBase.prototype.loadResComplete = function () {
