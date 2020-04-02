@@ -171,8 +171,21 @@ module gui {
                 }else{ //特殊情况  （旋转到了竖屏 但 长宽木有变化 则以长宽为基础角度也不变）
                     this.mainView.rotation = 0;
                 }
+            }else if(gameTool.pToLand == 2 && !gameTool.isPc){
+                //竖屏 显示成竖屏
+                if(clientWidth>clientHeight){
+                    useHeight = clientWidth;
+                    useWidth = clientHeight;
+                }
+                if (!gameTool.gameRotate) {
+                    this.mainView.rotation =  0;
+                }else if(gameTool.gameRotate && clientWidth>clientHeight){
+                     this.mainView.rotation = -90;
+                     this.mainView.y = useWidth;
+                }else{
+                    this.mainView.rotation =  0;
+                }
             }else{
-                //都是横屏 都是竖屏
                 this.mainView.rotation = 0;
             }
             let perw         = useWidth/w;                  //宽的比例

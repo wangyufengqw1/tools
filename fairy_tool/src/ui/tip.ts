@@ -40,18 +40,23 @@ module tip {
         public _itemList: TipItem[];
 
         constructor() {
-            this._textTipCurrentY = gameTool.stage.stageHeight / 2 - this.GAME_TIP_START_Y;
+            // this._textTipCurrentY = gameTool.stage.stageHeight / 2 - this.GAME_TIP_START_Y;
             this._itemList = [];
+            this._textTipCurrentY = gameTool.gameContentWH[1] / 2 - this.GAME_TIP_START_Y;
         }
 
         showTextTip(message: string,v:egret.DisplayObjectContainer=null) {
             var item: TipItem = <any>new TipItem(message);
-            item.x = (gameTool.stage.stageWidth - item.width) / 2;
+             if(item.width>gameTool.gameContentWH[0]){    //tip的资源过大 在资源大于宽的情况下 资源缩小至一样的大小并且位置为0
+                item.scaleX = item.scaleY = gameTool.gameContentWH[0]/item.width;
+                item.x = 0;
+            }else{
+                item.x = (gameTool.gameContentWH[0] - item.width) / 2; //长度够的游戏则居中处理
+            }   
             item.y = this._textTipCurrentY;
             if(v == null){
                gui.addDisplayToStage(item, define.WindowType.TIP_LAYER);  
             }else{
-               item.x = 0;
                v.addChild(item);
             }
             item.startScroll();
@@ -69,7 +74,7 @@ module tip {
                 this._itemList.splice(index, 1);
             }
             if (this._itemList.length == 0) {
-                this._textTipCurrentY = gameTool.stage.stageHeight / 2 - this.GAME_TIP_START_Y;
+                this._textTipCurrentY = gameTool.gameContentWH[1] / 2 - this.GAME_TIP_START_Y;   //游戏的大小不同则根据获取的调整大小
             }
         }
     }

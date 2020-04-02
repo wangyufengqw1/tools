@@ -14,6 +14,8 @@ module api {
 		 * 模块管理
 		 */
 		static moduleManager: ModuleManager;
+		//工具类
+		static tool:Tool;
 
 		static initView(value:egret.Stage):void
 		{ 
@@ -23,6 +25,7 @@ module api {
 			this.moduleManager = new ModuleManager();
 			this.soundManager = new SoundManagers(value);
 			this.publicApi = new PublicAPi();
+			this.tool      = new Tool();
 		}
 	}
 }

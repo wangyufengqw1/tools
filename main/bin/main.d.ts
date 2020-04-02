@@ -12,31 +12,90 @@ declare class LoadViewBase extends loadUI.BaseLoadingUI {
      */
     setProgress(current: number, total: number): void;
 }
-declare module api {
-    interface IUserData {
-        setUserName(value: string): void;
-        getUserName(): string;
-        setUserCoins(value: number): any;
-        getUserCoins(): number;
-        setUserIcon(value: number): void;
-        getUserIcon(): number;
-        getOpenId(): string;
-        setOpenId(value: string): void;
-    }
-    class UserData implements IUserData {
-        private $userName;
-        private $coins;
-        private $icon;
-        private $openId;
-        setUserName(value: string): void;
-        getUserName(): string;
-        setUserCoins(value: number): void;
-        getUserCoins(): number;
-        setUserIcon(value: number): void;
-        getUserIcon(): number;
-        getOpenId(): string;
-        setOpenId(value: string): void;
-    }
+declare class PublicAPi {
+    constructor();
+    /**
+     * 全局监听的消息
+     */
+    private initEvent();
+    /**
+     *  弹窗显示
+     */
+    private isTanChuang(str);
+    /**
+     * 后端掉线询问
+     */
+    private diaoxian();
+    /**
+     * 掉线通知
+     */
+    private kickoutF(data);
+    private regedEvebt;
+    /**
+    * 后端消息接听初始化
+    */
+    private eventInit();
+    /**
+     * 消息移除
+     */
+    private eventRemove();
+    private gameEvebt;
+    /**
+     * 添加后端消息监控
+     */
+    addGameEvebt(name: string, k: string, _fun: Function, arg: any): void;
+    /**
+     * 游戏初始化
+     */
+    gameEvebtInit(name: string): void;
+    /**
+     * 移除游戏中的消息
+     */
+    removeGameEvbt(name: string): void;
+    private allRemoveEvbt();
+    dispose(): void;
+    /**
+     * 替换名字
+     */
+    changeName(str: string): string;
+    /**
+    * 替换名字
+    */
+    changeMoney(num: number): string;
+    /**
+     * 交换位置 a是需要的 b是替换的
+     */
+    sweepChangeCom(a: fairygui.GComponent, b: fairygui.GComponent): void;
+    /**
+     * 登录界面继续游戏
+     */
+    contineGame(data: any): void;
+    /**
+     * 播放该物件下的所有动画
+     */
+    playAllMc(value: fairygui.GComponent, callBack?: CallBackVo): void;
+    /**
+     * 播放动画
+     */
+    playMc(value: fairygui.GComponent, callBack?: CallBackVo): void;
+    comebackDoor(): void;
+    /**
+    * 公告显示
+    */
+    doorTipShow(str: string): string;
+    /**
+     * 将玩家的信息排在第一位
+     */
+    firstMyInfomation(value: any): any;
+    rankSort(data: any, arr: any): any;
+    isOnlie: number;
+    isRelease: boolean;
+    openModule: string;
+    openStr: string;
+    /************************************************这个是热门区域******************************************************** */
+    pNum: string[];
+    numRank: any;
+    manVoice: number[];
 }
 declare class commonBtn extends fairygui.GButton {
     constructor();
@@ -261,6 +320,7 @@ declare module api {
          * 模块管理
          */
         static moduleManager: ModuleManager;
+        static tool: Tool;
         static initView(value: egret.Stage): void;
     }
 }
@@ -342,6 +402,32 @@ declare class ItemApi {
     constructor();
     static moneyEx: number;
 }
+declare module api {
+    interface IUserData {
+        setUserName(value: string): void;
+        getUserName(): string;
+        setUserCoins(value: number): any;
+        getUserCoins(): number;
+        setUserIcon(value: number): void;
+        getUserIcon(): number;
+        getOpenId(): string;
+        setOpenId(value: string): void;
+    }
+    class UserData implements IUserData {
+        private $userName;
+        private $coins;
+        private $icon;
+        private $openId;
+        setUserName(value: string): void;
+        getUserName(): string;
+        setUserCoins(value: number): void;
+        getUserCoins(): number;
+        setUserIcon(value: number): void;
+        getUserIcon(): number;
+        getOpenId(): string;
+        setOpenId(value: string): void;
+    }
+}
 declare class btnItem extends fairygui.GButton {
     constructor();
     constructFromResource(): void;
@@ -377,91 +463,6 @@ declare class btnItem extends fairygui.GButton {
     private imag;
     private c2;
     private c3;
-}
-declare class PublicAPi {
-    constructor();
-    /**
-     * 全局监听的消息
-     */
-    private initEvent();
-    /**
-     *  弹窗显示
-     */
-    private isTanChuang(str);
-    /**
-     * 后端掉线询问
-     */
-    private diaoxian();
-    /**
-     * 掉线通知
-     */
-    private kickoutF(data);
-    private regedEvebt;
-    /**
-    * 后端消息接听初始化
-    */
-    private eventInit();
-    /**
-     * 消息移除
-     */
-    private eventRemove();
-    private gameEvebt;
-    /**
-     * 添加后端消息监控
-     */
-    addGameEvebt(name: string, k: string, _fun: Function, arg: any): void;
-    /**
-     * 游戏初始化
-     */
-    gameEvebtInit(name: string): void;
-    /**
-     * 移除游戏中的消息
-     */
-    removeGameEvbt(name: string): void;
-    private allRemoveEvbt();
-    dispose(): void;
-    /**
-     * 替换名字
-     */
-    changeName(str: string): string;
-    /**
-    * 替换名字
-    */
-    changeMoney(num: number): string;
-    /**
-     * 交换位置 a是需要的 b是替换的
-     */
-    sweepChangeCom(a: fairygui.GComponent, b: fairygui.GComponent): void;
-    /**
-     * 登录界面继续游戏
-     */
-    contineGame(data: any): void;
-    /**
-     * 播放该物件下的所有动画
-     */
-    playAllMc(value: fairygui.GComponent, callBack?: CallBackVo): void;
-    /**
-     * 播放动画
-     */
-    playMc(value: fairygui.GComponent, callBack?: CallBackVo): void;
-    comebackDoor(): void;
-    /**
-    * 公告显示
-    */
-    doorTipShow(str: string): string;
-    /**
-     * 将玩家的信息排在第一位
-     */
-    firstMyInfomation(value: any): any;
-    rankSort(data: any, arr: any): any;
-    isOnlie: number;
-    isRelease: boolean;
-    openModule: string;
-    openStr: string;
-    /************************************************这个是热门区域******************************************************** */
-    pNum: string[];
-    numRank: any;
-    manVoice: number[];
 }
 declare class SoundManagers {
     /**
@@ -547,6 +548,23 @@ declare class SoundManagers {
      * 都准备好了
     */
     allReadly(): boolean;
+}
+declare module api {
+    class Tool {
+        constructor();
+        /**
+         * 获取最大值
+         * @param arr 集合数组
+         * @param str 对比的属性
+         */
+        getMaxByPro(arr: any, str: string): number;
+        /**
+         * 获取最小值
+         * @param arr 集合数组
+         * @param str 对比的属性
+         */
+        getMinByPro(arr: any, str: string): number;
+    }
 }
 declare module base {
     class FishLoadUi extends LoadViewBase {

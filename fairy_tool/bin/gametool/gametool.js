@@ -912,8 +912,24 @@ var gui;
                     this.mainView.rotation = 0;
                 }
             }
+            else if (gameTool.pToLand == 2 && !gameTool.isPc) {
+                //竖屏 显示成竖屏
+                if (clientWidth > clientHeight) {
+                    useHeight = clientWidth;
+                    useWidth = clientHeight;
+                }
+                if (!gameTool.gameRotate) {
+                    this.mainView.rotation = 0;
+                }
+                else if (gameTool.gameRotate && clientWidth > clientHeight) {
+                    this.mainView.rotation = -90;
+                    this.mainView.y = useWidth;
+                }
+                else {
+                    this.mainView.rotation = 0;
+                }
+            }
             else {
-                //都是横屏 都是竖屏
                 this.mainView.rotation = 0;
             }
             var perw = useWidth / w; //宽的比例
@@ -4067,19 +4083,25 @@ var tip;
     var TipManager = (function () {
         function TipManager() {
             this.GAME_TIP_START_Y = 150;
-            this._textTipCurrentY = gameTool.stage.stageHeight / 2 - this.GAME_TIP_START_Y;
+            // this._textTipCurrentY = gameTool.stage.stageHeight / 2 - this.GAME_TIP_START_Y;
             this._itemList = [];
+            this._textTipCurrentY = gameTool.gameContentWH[1] / 2 - this.GAME_TIP_START_Y;
         }
         TipManager.prototype.showTextTip = function (message, v) {
             if (v === void 0) { v = null; }
             var item = new TipItem(message);
-            item.x = (gameTool.stage.stageWidth - item.width) / 2;
+            if (item.width > gameTool.gameContentWH[0]) {
+                item.scaleX = item.scaleY = gameTool.gameContentWH[0] / item.width;
+                item.x = 0;
+            }
+            else {
+                item.x = (gameTool.gameContentWH[0] - item.width) / 2; //长度够的游戏则居中处理
+            }
             item.y = this._textTipCurrentY;
             if (v == null) {
                 gui.addDisplayToStage(item, define.WindowType.TIP_LAYER);
             }
             else {
-                item.x = 0;
                 v.addChild(item);
             }
             item.startScroll();
@@ -4096,7 +4118,7 @@ var tip;
                 this._itemList.splice(index, 1);
             }
             if (this._itemList.length == 0) {
-                this._textTipCurrentY = gameTool.stage.stageHeight / 2 - this.GAME_TIP_START_Y;
+                this._textTipCurrentY = gameTool.gameContentWH[1] / 2 - this.GAME_TIP_START_Y; //游戏的大小不同则根据获取的调整大小
             }
         };
         return TipManager;
