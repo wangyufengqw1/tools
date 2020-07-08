@@ -67,25 +67,32 @@ module loadUtil {
                 RES.addEventListener(RES.ResourceEvent.GROUP_PROGRESS, this.onResourceProgress, this);
                 RES.addEventListener(RES.ResourceEvent.ITEM_LOAD_ERROR, this.onItemLoadError, this);
                 RES.loadGroup(this._groupName);
-                this.desGroup(this._groupName);
+                // this.desGroup(this._groupName);
             }
         }
 
+        /**
+         * 手机上的资源不能加载过多 不然的话会卡主 所以需要进行清理
+         * 清理的逻辑是
+         */
         private desGroup(str:string):void
-        {
-            if(this.loadRes.indexOf(str)>-1 || str == "fish" || str == "xq"){
+        {    
+            //如果是当前资源则不进行删除
+            if(this.loadRes.indexOf(str)>-1){
                 return ;
             }
             this.loadRes.push(str);
             for(let i : number = this.loadRes.length-2;i>=0;i--){
-                if(RES.destroyRes(this.loadRes[i])){
-                    if(fairygui.UIPackage.getByName(loadUtil.packName[this.loadRes[i]])){
-                         fairygui.UIPackage.removePackage(fairygui.UIPackage.getByName(loadUtil.packName[this.loadRes[i]]).id);
-                    }
-                     this.loadRes.splice(i,1); 
-                };
+                //组的资源命名需要相同的前缀,不同前缀的资源进行删除
+                if(this.loadRes[i].indexOf(str) == -1 && str.indexOf(this.loadRes[i]) == -1){
+                    if(RES.destroyRes(this.loadRes[i])){
+                        if(fairygui.UIPackage.getByName(loadUtil.packName[this.loadRes[i]])){
+                            fairygui.UIPackage.removePackage(fairygui.UIPackage.getByName(loadUtil.packName[this.loadRes[i]]).id);
+                        }
+                        this.loadRes.splice(i,1); 
+                    };
+                }
             }
-            
         }
 
         loadResource(path: string, dataFormat: string, complete: (res) => void, context: any) {

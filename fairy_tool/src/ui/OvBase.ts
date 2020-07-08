@@ -1,11 +1,16 @@
 ///<reference path="gui.ts" />
 module gui {
+    /**
+     * 资源格式 需要一个bg 和 ui
+     */
     export class OvBase extends BaseWindow {
         protected _textList: fairygui.GTextField[];
         protected _ivs: ItemViewBase[];
         private _pkgName: string;
         private _resName: string;
         protected className:string;
+        protected mainView:fairygui.GComponent;
+        protected _bg:fairygui.GComponent;
         public constructor(pkgName: string, resName: string, modal: boolean = true, center: boolean = true, loadingView: {
             new(): loadUI.BaseLoadingUI;
         } = null) {
@@ -67,22 +72,38 @@ module gui {
         // /**
         //  * 设置设配
         //  */
-        // fullWindow(width: number = 750, height: number = 1334) {
-        //     // let w = document.body.clientWidth;
-        //     // let h = document.body.clientHeight;
-        //     let h = gameTool.stage.stageHeight;
-        //     let w = gameTool.stage.stageWidth;
-        //     let scaleX = width / w;
-        //     let scaleY = height / h;
-        //     if (scaleX < scaleY) {
-        //         this._ui.setSize(width, h * scaleX);
-        //     } else {
-        //         this._ui.setSize(w * scaleY, height);
-        //     }
-        //     this._ui.setXY(0, 0);
-        // }
+       wxfullWindow(width: number = 750, height: number = 1334) {
+            // let w = document.body.clientWidth;
+            // let h = document.body.clientHeight;
+            if(!this._ui){
+                return ;
+            }
+            let clientHeight = height;
+            let clientWidth  = width;
+            let w            = gameTool.gameContentWH[0];      //游戏内容的长宽
+            let h            = gameTool.gameContentWH[1];      //游戏内容的长宽
+            let perw         = clientWidth/w;                  //宽的比例
+            let tempH        = h*perw                       //根据宽的比例求对应的高
+            let perH         = clientHeight/h;                 //高的比例
+            let tempW        = w*perH;                      //根据高的比例求对应的宽
+            if(tempH<=clientHeight && perw<perH){
+                this._ui.setScale(perw,perw);
+            }else if(tempW<=clientWidth && perH<perw){
+                this._ui.setScale(perH,perH);
+            }
+            var sc = this._ui.scaleX;  //缩放比例
+            if(sc*w!=clientWidth){
+               this._ui.width = clientWidth/sc;
+           }
+           if(sc*h!=clientHeight){
+               this._ui.height = clientHeight/sc; 
+           }   
+            this._bg.width = clientWidth;
+            this._bg.height = clientHeight;
+        }
+
         onInit(): void {
-            if (fairygui.UIPackage.getByName(this._pkgName) == null) {
+            if (fairygui.UIPackage.getByName(this._pkgName) == null || this._ui == null) {
                 return;
             }
             super.onInit();
@@ -112,7 +133,7 @@ module gui {
         }
 
         protected clickHandler(index: number) {
-
+            
         }
 
         protected registerTexts(container: fairygui.GComponent) {
@@ -136,7 +157,7 @@ module gui {
             this._ui = this.mainView.getChild("ui").asCom;
             this._bg = this.mainView.getChild("bg").asCom;
          //   this.resize();
-            this.onResize();
+        //    this.onResize();
             bindGuiProperty(this, this._ui);
             this.init();
             this.addChild(this.mainView);

@@ -338,6 +338,16 @@ class PublicAPi{
         return arr;
     }
 
+    arrSort(brr:any,arr:any):any
+    {
+        for(let i : number = arr.length-1;i>=0;i--){
+            if(brr.indexOf(Number(arr[i])) == -1){
+                arr.splice(i,1);
+            }
+        }
+        return arr;
+    }
+
     isOnlie:number;     //1网络有链接 2没有网络 3没有网络提示框已弹 4
     isRelease:boolean;  //是否是外网
     openModule:string;  //打开模块的模块名

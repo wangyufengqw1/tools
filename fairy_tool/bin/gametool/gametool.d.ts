@@ -197,8 +197,6 @@ declare module gui {
         inSceneQueue: boolean;
         inClose: boolean;
         private _viewData;
-        protected mainView: fairygui.GComponent;
-        protected _bg: fairygui.GComponent;
         constructor(modal?: boolean, center?: boolean);
         enter(...args: any[]): void;
         /**
@@ -273,12 +271,17 @@ declare module extendsUI {
     }
 }
 declare module gui {
+    /**
+     * 资源格式 需要一个bg 和 ui
+     */
     class OvBase extends BaseWindow {
         protected _textList: fairygui.GTextField[];
         protected _ivs: ItemViewBase[];
         private _pkgName;
         private _resName;
         protected className: string;
+        protected mainView: fairygui.GComponent;
+        protected _bg: fairygui.GComponent;
         constructor(pkgName: string, resName: string, modal?: boolean, center?: boolean, loadingView?: {
             new (): loadUI.BaseLoadingUI;
         });
@@ -287,6 +290,7 @@ declare module gui {
         setText(index: number, text: any): void;
         getText(index: number): string;
         getTextFiled(index: number): fairygui.GTextField;
+        wxfullWindow(width?: number, height?: number): void;
         onInit(): void;
         /******************************************************************/
         protected initView(): void;
@@ -397,34 +401,44 @@ declare module gameTool {
     function inStage(display: egret.DisplayObject): boolean;
 }
 declare module gui {
-    class NumSelect {
+    class PageTurn {
+        private _itemClick;
         private _com;
-        private _reduceBtn;
-        private _addBtn;
-        private _minBtn;
-        private _maxBtn;
-        private _num;
-        private _totalNum;
-        private _numText;
-        private _onChangeHandler;
-        private _min;
-        private _callThisObj;
-        constructor(com: fairygui.GComponent, onChangeHandler: () => void, callThisObj: any);
+        private _list;
+        private _type;
+        private _preBtn;
+        private _nextBtn;
+        private _currentPage;
+        private _totalPage;
+        private _onTurnPage;
+        private _pageText;
+        private _itemRenderer;
+        private _callbackThisObj;
+        private _pageNum;
+        private _length;
+        /**
+         *  翻页
+         * @param com           翻页资源 （翻页列表父级显示对象，里面包含特定组件：list,prevBtn,nextBtn,pageTxt缺一不可）
+         * @param pkgName       包名
+         * @param resName       对应的物件名
+         * @param type          物件类型
+         * @param itemRenderer  渲染物件方法 function(当前页的index，所有列表的index，item对象)
+         * @param onChange      翻页触发方法
+         */
+        constructor(com: fairygui.GComponent, pkgName: string, resName: string, type: any, itemRenderer: (relativeIndex, index, item) => void, onTurnPage: () => void, callbackThisObj: any);
         dispose(): void;
         /******************************************************************/
-        private onTextChange(event);
-        private onNumChange();
+        private onPageChange();
+        private onItemClick(event);
         private onPre();
         private onNext();
-        private onMax();
-        private onMin();
-        /******************************************************************/
-        oneChange: boolean;
-        min: number;
-        minBtn: boolean;
-        maxBtn: boolean;
-        max: number;
-        num: number;
+        private itemRenderer(index, item);
+        itemClick: Function;
+        length: number;
+        private numItems;
+        currentPage: number;
+        readonly totalPage: number;
+        pageNum: number;
     }
 }
 /**
@@ -1261,6 +1275,37 @@ declare module loadUI {
         setProgress(current: number, total: number): void;
     }
 }
+declare module gui {
+    class NumSelect {
+        private _com;
+        private _reduceBtn;
+        private _addBtn;
+        private _minBtn;
+        private _maxBtn;
+        private _num;
+        private _totalNum;
+        private _numText;
+        private _onChangeHandler;
+        private _min;
+        private _callThisObj;
+        constructor(com: fairygui.GComponent, onChangeHandler: () => void, callThisObj: any);
+        dispose(): void;
+        /******************************************************************/
+        private onTextChange(event);
+        private onNumChange();
+        private onPre();
+        private onNext();
+        private onMax();
+        private onMin();
+        /******************************************************************/
+        oneChange: boolean;
+        min: number;
+        minBtn: boolean;
+        maxBtn: boolean;
+        max: number;
+        num: number;
+    }
+}
 /**
  * Created by lxz on 2017/7/13.
  */
@@ -1276,47 +1321,6 @@ declare class FunctionInfo {
     dispose(): void;
     call(): void;
     onceCall(): void;
-}
-declare module gui {
-    class PageTurn {
-        private _itemClick;
-        private _com;
-        private _list;
-        private _type;
-        private _preBtn;
-        private _nextBtn;
-        private _currentPage;
-        private _totalPage;
-        private _onTurnPage;
-        private _pageText;
-        private _itemRenderer;
-        private _callbackThisObj;
-        private _pageNum;
-        private _length;
-        /**
-         *  翻页
-         * @param com           翻页资源 （翻页列表父级显示对象，里面包含特定组件：list,prevBtn,nextBtn,pageTxt缺一不可）
-         * @param pkgName       包名
-         * @param resName       对应的物件名
-         * @param type          物件类型
-         * @param itemRenderer  渲染物件方法 function(当前页的index，所有列表的index，item对象)
-         * @param onChange      翻页触发方法
-         */
-        constructor(com: fairygui.GComponent, pkgName: string, resName: string, type: any, itemRenderer: (relativeIndex, index, item) => void, onTurnPage: () => void, callbackThisObj: any);
-        dispose(): void;
-        /******************************************************************/
-        private onPageChange();
-        private onItemClick(event);
-        private onPre();
-        private onNext();
-        private itemRenderer(index, item);
-        itemClick: Function;
-        length: number;
-        private numItems;
-        currentPage: number;
-        readonly totalPage: number;
-        pageNum: number;
-    }
 }
 /**
  * Created by lxz on 2017/11/21.
@@ -1370,6 +1374,39 @@ declare module gui {
             x: number;
             y: number;
         };
+    }
+}
+declare module gui {
+    /**
+     * 简单的一个资源模块加载 可以用来加载视频
+     */
+    class SingleOvBase extends BaseWindow {
+        protected _textList: fairygui.GTextField[];
+        protected _ivs: ItemViewBase[];
+        private _pkgName;
+        private _resName;
+        protected className: string;
+        private isComplete;
+        constructor(pkgName: string, resName: string, modal?: boolean, center?: boolean, loadingView?: {
+            new (): loadUI.BaseLoadingUI;
+        });
+        wxfullWindow(width?: number, height?: number): void;
+        dispose(): void;
+        updateItemView(index: any, ...args: any[]): void;
+        setText(index: number, text: any): void;
+        getText(index: number): string;
+        getTextFiled(index: number): fairygui.GTextField;
+        onInit(): void;
+        /******************************************************************/
+        protected initView(): void;
+        protected onClick(e: egret.TouchEvent): void;
+        protected clickHandler(index: number): void;
+        protected registerTexts(container: fairygui.GComponent): void;
+        protected initUI(pkgName: any, resName: any): void;
+        onResize(): void;
+        /******************************************************************/
+        private loadResComplete();
+        private onTextSort(t1, t2);
     }
 }
 /**
@@ -2549,6 +2586,10 @@ declare module loadUtil {
         loadGroup(group: string, loadingView: {
             new (): loadUI.BaseLoadingUI;
         }, fun: (...args) => any, context: any, ...args: any[]): void;
+        /**
+         * 手机上的资源不能加载过多 不然的话会卡主 所以需要进行清理
+         * 清理的逻辑是
+         */
         private desGroup(str);
         loadResource(path: string, dataFormat: string, complete: (res) => void, context: any): void;
         /******************************************************************/

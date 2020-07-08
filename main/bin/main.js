@@ -314,6 +314,14 @@ var PublicAPi = (function () {
         }
         return arr;
     };
+    PublicAPi.prototype.arrSort = function (brr, arr) {
+        for (var i = arr.length - 1; i >= 0; i--) {
+            if (brr.indexOf(Number(arr[i])) == -1) {
+                arr.splice(i, 1);
+            }
+        }
+        return arr;
+    };
     return PublicAPi;
 }());
 __reflect(PublicAPi.prototype, "PublicAPi");
@@ -1714,6 +1722,17 @@ var Main = (function (_super) {
     return Main;
 }(egret.DisplayObjectContainer));
 __reflect(Main.prototype, "Main");
+var SweepLoadUi = (function (_super) {
+    __extends(SweepLoadUi, _super);
+    function SweepLoadUi() {
+        //super("sweepGame");
+        return _super.call(this, "load") || this;
+    }
+    SweepLoadUi.prototype.onProgress = function (current, total) {
+    };
+    return SweepLoadUi;
+}(LoadViewBase));
+__reflect(SweepLoadUi.prototype, "SweepLoadUi", ["RES.PromiseTaskReporter"]);
 var base;
 (function (base) {
     var BaseAlert = (function (_super) {

@@ -332,8 +332,6 @@ module gui {
         // 是否处于关闭状态
         inClose: boolean;
         private _viewData: any;
-        protected mainView : fairygui.GComponent;
-        protected _bg : fairygui.GComponent;
 
         constructor(modal: boolean = true, center: boolean = true) {
             super();
@@ -428,18 +426,9 @@ module gui {
                 }
                 this._buttonList.length = 0;
             }
-            if(this._bg){
-                this._bg.dispose();
-                this._bg = null;
-            }
             if (this._ui) {
                 this._ui.dispose();
                 this._ui = null;
-            }
-            if(this.mainView)
-            {
-                this.mainView.dispose();
-                this.mainView = null;
             }
             if (this._animation) {
                 this._animation.dispose();

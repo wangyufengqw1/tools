@@ -88,6 +88,7 @@ declare class PublicAPi {
      */
     firstMyInfomation(value: any): any;
     rankSort(data: any, arr: any): any;
+    arrSort(brr: any, arr: any): any;
     isOnlie: number;
     isRelease: boolean;
     openModule: string;
@@ -577,6 +578,10 @@ declare module base {
 declare class Main extends egret.DisplayObjectContainer {
     constructor();
     private onAddToStage(event);
+}
+declare class SweepLoadUi extends LoadViewBase implements RES.PromiseTaskReporter {
+    constructor();
+    onProgress(current: number, total: number): void;
 }
 declare module base {
     class BaseAlert extends gui.OvBase {

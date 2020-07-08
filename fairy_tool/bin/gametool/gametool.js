@@ -567,17 +567,9 @@ var gui;
                 }
                 this._buttonList.length = 0;
             }
-            if (this._bg) {
-                this._bg.dispose();
-                this._bg = null;
-            }
             if (this._ui) {
                 this._ui.dispose();
                 this._ui = null;
-            }
-            if (this.mainView) {
-                this.mainView.dispose();
-                this.mainView = null;
             }
             if (this._animation) {
                 this._animation.dispose();
@@ -747,6 +739,9 @@ var extendsUI;
 ///<reference path="gui.ts" />
 var gui;
 (function (gui) {
+    /**
+     * 资源格式 需要一个bg 和 ui
+     */
     var OvBase = (function (_super) {
         __extends(OvBase, _super);
         function OvBase(pkgName, resName, modal, center, loadingView) {
@@ -814,22 +809,40 @@ var gui;
         // /**
         //  * 设置设配
         //  */
-        // fullWindow(width: number = 750, height: number = 1334) {
-        //     // let w = document.body.clientWidth;
-        //     // let h = document.body.clientHeight;
-        //     let h = gameTool.stage.stageHeight;
-        //     let w = gameTool.stage.stageWidth;
-        //     let scaleX = width / w;
-        //     let scaleY = height / h;
-        //     if (scaleX < scaleY) {
-        //         this._ui.setSize(width, h * scaleX);
-        //     } else {
-        //         this._ui.setSize(w * scaleY, height);
-        //     }
-        //     this._ui.setXY(0, 0);
-        // }
+        OvBase.prototype.wxfullWindow = function (width, height) {
+            if (width === void 0) { width = 750; }
+            if (height === void 0) { height = 1334; }
+            // let w = document.body.clientWidth;
+            // let h = document.body.clientHeight;
+            if (!this._ui) {
+                return;
+            }
+            var clientHeight = height;
+            var clientWidth = width;
+            var w = gameTool.gameContentWH[0]; //游戏内容的长宽
+            var h = gameTool.gameContentWH[1]; //游戏内容的长宽
+            var perw = clientWidth / w; //宽的比例
+            var tempH = h * perw; //根据宽的比例求对应的高
+            var perH = clientHeight / h; //高的比例
+            var tempW = w * perH; //根据高的比例求对应的宽
+            if (tempH <= clientHeight && perw < perH) {
+                this._ui.setScale(perw, perw);
+            }
+            else if (tempW <= clientWidth && perH < perw) {
+                this._ui.setScale(perH, perH);
+            }
+            var sc = this._ui.scaleX; //缩放比例
+            if (sc * w != clientWidth) {
+                this._ui.width = clientWidth / sc;
+            }
+            if (sc * h != clientHeight) {
+                this._ui.height = clientHeight / sc;
+            }
+            this._bg.width = clientWidth;
+            this._bg.height = clientHeight;
+        };
         OvBase.prototype.onInit = function () {
-            if (fairygui.UIPackage.getByName(this._pkgName) == null) {
+            if (fairygui.UIPackage.getByName(this._pkgName) == null || this._ui == null) {
                 return;
             }
             _super.prototype.onInit.call(this);
@@ -878,7 +891,7 @@ var gui;
             this._ui = this.mainView.getChild("ui").asCom;
             this._bg = this.mainView.getChild("bg").asCom;
             //   this.resize();
-            this.onResize();
+            //    this.onResize();
             gui.bindGuiProperty(this, this._ui);
             this.init();
             this.addChild(this.mainView);
@@ -1186,155 +1199,146 @@ var gameTool;
 })(gameTool || (gameTool = {}));
 var gui;
 (function (gui) {
-    var NumSelect = (function () {
-        function NumSelect(com, onChangeHandler, callThisObj) {
-            this._num = 0;
-            this._totalNum = 0;
-            this._min = 0;
+    var PageTurn = (function () {
+        /**
+         *  翻页
+         * @param com           翻页资源 （翻页列表父级显示对象，里面包含特定组件：list,prevBtn,nextBtn,pageTxt缺一不可）
+         * @param pkgName       包名
+         * @param resName       对应的物件名
+         * @param type          物件类型
+         * @param itemRenderer  渲染物件方法 function(当前页的index，所有列表的index，item对象)
+         * @param onChange      翻页触发方法
+         */
+        function PageTurn(com, pkgName, resName, type, itemRenderer, onTurnPage, callbackThisObj) {
+            this._currentPage = 0;
+            this._totalPage = 0;
+            this._pageNum = 0;
+            this._length = 0;
             this._com = com;
-            this._numText = this._com.getChild("num").asTextField;
-            this._numText.addEventListener(egret.Event.CHANGE, this.onTextChange, this);
-            this.num = 0;
-            this._onChangeHandler = onChangeHandler;
-            this._callThisObj = callThisObj;
+            fairygui.UIObjectFactory.setPackageItemExtension(fairygui.UIPackage.getItemURL(pkgName, resName), type);
+            this._list = this._com.getChild("list").asList;
+            this._preBtn = this._com.getChild("prevBtn").asButton;
+            this._nextBtn = this._com.getChild("nextBtn").asButton;
+            if (this._com.getChild("pageTxt") != null) {
+                this._pageText = this._com.getChild("pageTxt").asTextField;
+            }
+            this._itemRenderer = itemRenderer;
+            this._callbackThisObj = callbackThisObj;
+            this._list.itemRenderer = this.itemRenderer;
+            this._list.callbackThisObj = this;
+            this._type = type;
+            this._preBtn.addClickListener(this.onPre, this);
+            this._nextBtn.addClickListener(this.onNext, this);
+            this._currentPage = 1;
+            this._onTurnPage = onTurnPage;
         }
-        NumSelect.prototype.dispose = function () {
-            if (this._reduceBtn) {
-                this._reduceBtn.removeClickListener(this.onPre, this);
-                this._addBtn.removeClickListener(this.onNext, this);
-            }
-            this._numText.removeEventListener(egret.Event.CHANGE, this.onTextChange, this);
-            if (this._maxBtn) {
-                this._maxBtn.removeClickListener(this.onMax, this);
-            }
-            if (this._minBtn) {
-                this._minBtn.removeClickListener(this.onMin, this);
-            }
+        PageTurn.prototype.dispose = function () {
+            this._list.removeEventListener(fairygui.ItemEvent.CLICK, this.onItemClick, this);
+            this._preBtn.removeClickListener(this.onPre, this);
+            this._nextBtn.removeClickListener(this.onNext, this);
             this._com.dispose();
             this._com = null;
-            this._callThisObj = null;
-            this._minBtn = null;
-            this._maxBtn = null;
-            this._reduceBtn = null;
-            this._addBtn = null;
-            this._onChangeHandler = null;
+            this._list = null;
+            this._type = null;
+            this._itemClick = null;
+            this._onTurnPage = null;
+            this._itemRenderer = null;
+            this._callbackThisObj = null;
         };
         /******************************************************************/
-        NumSelect.prototype.onTextChange = function (event) {
-            if (this._numText.text == "") {
-                this._num = 0;
-                this.onNumChange();
-                return;
+        PageTurn.prototype.onPageChange = function () {
+            if (this._currentPage > this._totalPage) {
+                this._currentPage = 1;
             }
-            this.num = parseInt(this._numText.text);
-        };
-        NumSelect.prototype.onNumChange = function () {
-            if (this._reduceBtn) {
-                this._reduceBtn.enabled = this._num > 0;
-                this._addBtn.enabled = this._num < this._totalNum;
+            this._preBtn.enabled = this._currentPage > 1;
+            this._nextBtn.enabled = this._currentPage < this._totalPage;
+            if (this._pageText) {
+                this._pageText.text = String(this._currentPage) + "/" + this._totalPage;
             }
-            if (this._onChangeHandler) {
-                this._onChangeHandler.call(this._callThisObj);
-            }
+            this.numItems = this._pageNum;
+            this._onTurnPage.call(this._callbackThisObj);
         };
-        NumSelect.prototype.onPre = function () {
-            this.num--;
+        PageTurn.prototype.onItemClick = function (event) {
+            var item = event.itemObject;
+            this._itemClick.call(this._callbackThisObj, item);
         };
-        NumSelect.prototype.onNext = function () {
-            this.num++;
+        PageTurn.prototype.onPre = function () {
+            this._currentPage--;
+            this.onPageChange();
         };
-        NumSelect.prototype.onMax = function () {
-            this.num = this._totalNum;
+        PageTurn.prototype.onNext = function () {
+            this._currentPage++;
+            this.onPageChange();
         };
-        NumSelect.prototype.onMin = function () {
-            this.num = this._min;
+        PageTurn.prototype.itemRenderer = function (index, item) {
+            this._itemRenderer.call(this._callbackThisObj, index, (this._currentPage - 1) * this._pageNum + index, item);
         };
-        Object.defineProperty(NumSelect.prototype, "oneChange", {
-            /******************************************************************/
+        Object.defineProperty(PageTurn.prototype, "itemClick", {
             set: function (value) {
+                this._itemClick = value;
                 if (value) {
-                    this._reduceBtn = this._com.getChild("reduce").asButton;
-                    this._addBtn = this._com.getChild("add").asButton;
-                    this._reduceBtn.addClickListener(this.onPre, this);
-                    this._addBtn.addClickListener(this.onNext, this);
-                    this.onNumChange();
+                    this._list.addEventListener(fairygui.ItemEvent.CLICK, this.onItemClick, this);
+                }
+                else {
+                    this._list.removeEventListener(fairygui.ItemEvent.CLICK, this.onItemClick, this);
                 }
             },
             enumerable: true,
             configurable: true
         });
-        Object.defineProperty(NumSelect.prototype, "min", {
+        Object.defineProperty(PageTurn.prototype, "length", {
             set: function (value) {
-                this._min = value;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(NumSelect.prototype, "minBtn", {
-            set: function (value) {
-                if (value) {
-                    this._minBtn = this._com.getChild("min").asButton;
-                    this._minBtn.addClickListener(this.onMin, this);
+                this._length = value;
+                if (this._length == 0) {
+                    this._totalPage = 1;
                 }
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(NumSelect.prototype, "maxBtn", {
-            set: function (value) {
-                if (value) {
-                    this._maxBtn = this._com.getChild("max").asButton;
-                    this._maxBtn.addClickListener(this.onMax, this);
+                else {
+                    this._totalPage = Math.floor((this._length - 1) / this._pageNum + 1);
                 }
+                this.onPageChange();
             },
             enumerable: true,
             configurable: true
         });
-        Object.defineProperty(NumSelect.prototype, "max", {
+        Object.defineProperty(PageTurn.prototype, "numItems", {
+            set: function (value) {
+                this._list.numItems = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(PageTurn.prototype, "currentPage", {
             get: function () {
-                return this._totalNum;
+                return this._currentPage;
             },
             set: function (value) {
-                this._totalNum = value;
-                if (this._addBtn) {
-                    this._addBtn.enabled = this._num < this._totalNum;
-                }
-                if (this._num > this._totalNum) {
-                    this._num = this._totalNum;
-                }
-                if (this._num < this._min) {
-                    this._num = this._min;
-                }
-                this._numText.text = this._num.toString();
+                this._currentPage = value;
+                this.onPageChange();
             },
             enumerable: true,
             configurable: true
         });
-        Object.defineProperty(NumSelect.prototype, "num", {
+        Object.defineProperty(PageTurn.prototype, "totalPage", {
             get: function () {
-                return this._num;
-            },
-            set: function (value) {
-                this._num = value;
-                if (this._num < 0) {
-                    this._num = 0;
-                }
-                if (this._num > this._totalNum) {
-                    this._num = this._totalNum;
-                }
-                if (this._num < this._min) {
-                    this._num = this._min;
-                }
-                this.onNumChange();
-                this._numText.text = String(this._num);
+                return this._totalPage;
             },
             enumerable: true,
             configurable: true
         });
-        return NumSelect;
+        Object.defineProperty(PageTurn.prototype, "pageNum", {
+            get: function () {
+                return this._pageNum;
+            },
+            set: function (value) {
+                this._pageNum = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        return PageTurn;
     }());
-    gui.NumSelect = NumSelect;
-    __reflect(NumSelect.prototype, "gui.NumSelect");
+    gui.PageTurn = PageTurn;
+    __reflect(PageTurn.prototype, "gui.PageTurn");
 })(gui || (gui = {}));
 /**
  * Created by lxz on 2017/10/18.
@@ -3533,6 +3537,158 @@ var loadUI;
     //     }
     // }
 })(loadUI || (loadUI = {}));
+var gui;
+(function (gui) {
+    var NumSelect = (function () {
+        function NumSelect(com, onChangeHandler, callThisObj) {
+            this._num = 0;
+            this._totalNum = 0;
+            this._min = 0;
+            this._com = com;
+            this._numText = this._com.getChild("num").asTextField;
+            this._numText.addEventListener(egret.Event.CHANGE, this.onTextChange, this);
+            this.num = 0;
+            this._onChangeHandler = onChangeHandler;
+            this._callThisObj = callThisObj;
+        }
+        NumSelect.prototype.dispose = function () {
+            if (this._reduceBtn) {
+                this._reduceBtn.removeClickListener(this.onPre, this);
+                this._addBtn.removeClickListener(this.onNext, this);
+            }
+            this._numText.removeEventListener(egret.Event.CHANGE, this.onTextChange, this);
+            if (this._maxBtn) {
+                this._maxBtn.removeClickListener(this.onMax, this);
+            }
+            if (this._minBtn) {
+                this._minBtn.removeClickListener(this.onMin, this);
+            }
+            this._com.dispose();
+            this._com = null;
+            this._callThisObj = null;
+            this._minBtn = null;
+            this._maxBtn = null;
+            this._reduceBtn = null;
+            this._addBtn = null;
+            this._onChangeHandler = null;
+        };
+        /******************************************************************/
+        NumSelect.prototype.onTextChange = function (event) {
+            if (this._numText.text == "") {
+                this._num = 0;
+                this.onNumChange();
+                return;
+            }
+            this.num = parseInt(this._numText.text);
+        };
+        NumSelect.prototype.onNumChange = function () {
+            if (this._reduceBtn) {
+                this._reduceBtn.enabled = this._num > 0;
+                this._addBtn.enabled = this._num < this._totalNum;
+            }
+            if (this._onChangeHandler) {
+                this._onChangeHandler.call(this._callThisObj);
+            }
+        };
+        NumSelect.prototype.onPre = function () {
+            this.num--;
+        };
+        NumSelect.prototype.onNext = function () {
+            this.num++;
+        };
+        NumSelect.prototype.onMax = function () {
+            this.num = this._totalNum;
+        };
+        NumSelect.prototype.onMin = function () {
+            this.num = this._min;
+        };
+        Object.defineProperty(NumSelect.prototype, "oneChange", {
+            /******************************************************************/
+            set: function (value) {
+                if (value) {
+                    this._reduceBtn = this._com.getChild("reduce").asButton;
+                    this._addBtn = this._com.getChild("add").asButton;
+                    this._reduceBtn.addClickListener(this.onPre, this);
+                    this._addBtn.addClickListener(this.onNext, this);
+                    this.onNumChange();
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(NumSelect.prototype, "min", {
+            set: function (value) {
+                this._min = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(NumSelect.prototype, "minBtn", {
+            set: function (value) {
+                if (value) {
+                    this._minBtn = this._com.getChild("min").asButton;
+                    this._minBtn.addClickListener(this.onMin, this);
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(NumSelect.prototype, "maxBtn", {
+            set: function (value) {
+                if (value) {
+                    this._maxBtn = this._com.getChild("max").asButton;
+                    this._maxBtn.addClickListener(this.onMax, this);
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(NumSelect.prototype, "max", {
+            get: function () {
+                return this._totalNum;
+            },
+            set: function (value) {
+                this._totalNum = value;
+                if (this._addBtn) {
+                    this._addBtn.enabled = this._num < this._totalNum;
+                }
+                if (this._num > this._totalNum) {
+                    this._num = this._totalNum;
+                }
+                if (this._num < this._min) {
+                    this._num = this._min;
+                }
+                this._numText.text = this._num.toString();
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(NumSelect.prototype, "num", {
+            get: function () {
+                return this._num;
+            },
+            set: function (value) {
+                this._num = value;
+                if (this._num < 0) {
+                    this._num = 0;
+                }
+                if (this._num > this._totalNum) {
+                    this._num = this._totalNum;
+                }
+                if (this._num < this._min) {
+                    this._num = this._min;
+                }
+                this.onNumChange();
+                this._numText.text = String(this._num);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        return NumSelect;
+    }());
+    gui.NumSelect = NumSelect;
+    __reflect(NumSelect.prototype, "gui.NumSelect");
+})(gui || (gui = {}));
 /**
  * Created by lxz on 2017/7/13.
  */
@@ -3566,149 +3722,6 @@ var FunctionInfo = (function () {
     return FunctionInfo;
 }());
 __reflect(FunctionInfo.prototype, "FunctionInfo");
-var gui;
-(function (gui) {
-    var PageTurn = (function () {
-        /**
-         *  翻页
-         * @param com           翻页资源 （翻页列表父级显示对象，里面包含特定组件：list,prevBtn,nextBtn,pageTxt缺一不可）
-         * @param pkgName       包名
-         * @param resName       对应的物件名
-         * @param type          物件类型
-         * @param itemRenderer  渲染物件方法 function(当前页的index，所有列表的index，item对象)
-         * @param onChange      翻页触发方法
-         */
-        function PageTurn(com, pkgName, resName, type, itemRenderer, onTurnPage, callbackThisObj) {
-            this._currentPage = 0;
-            this._totalPage = 0;
-            this._pageNum = 0;
-            this._length = 0;
-            this._com = com;
-            fairygui.UIObjectFactory.setPackageItemExtension(fairygui.UIPackage.getItemURL(pkgName, resName), type);
-            this._list = this._com.getChild("list").asList;
-            this._preBtn = this._com.getChild("prevBtn").asButton;
-            this._nextBtn = this._com.getChild("nextBtn").asButton;
-            if (this._com.getChild("pageTxt") != null) {
-                this._pageText = this._com.getChild("pageTxt").asTextField;
-            }
-            this._itemRenderer = itemRenderer;
-            this._callbackThisObj = callbackThisObj;
-            this._list.itemRenderer = this.itemRenderer;
-            this._list.callbackThisObj = this;
-            this._type = type;
-            this._preBtn.addClickListener(this.onPre, this);
-            this._nextBtn.addClickListener(this.onNext, this);
-            this._currentPage = 1;
-            this._onTurnPage = onTurnPage;
-        }
-        PageTurn.prototype.dispose = function () {
-            this._list.removeEventListener(fairygui.ItemEvent.CLICK, this.onItemClick, this);
-            this._preBtn.removeClickListener(this.onPre, this);
-            this._nextBtn.removeClickListener(this.onNext, this);
-            this._com.dispose();
-            this._com = null;
-            this._list = null;
-            this._type = null;
-            this._itemClick = null;
-            this._onTurnPage = null;
-            this._itemRenderer = null;
-            this._callbackThisObj = null;
-        };
-        /******************************************************************/
-        PageTurn.prototype.onPageChange = function () {
-            if (this._currentPage > this._totalPage) {
-                this._currentPage = 1;
-            }
-            this._preBtn.enabled = this._currentPage > 1;
-            this._nextBtn.enabled = this._currentPage < this._totalPage;
-            if (this._pageText) {
-                this._pageText.text = String(this._currentPage) + "/" + this._totalPage;
-            }
-            this.numItems = this._pageNum;
-            this._onTurnPage.call(this._callbackThisObj);
-        };
-        PageTurn.prototype.onItemClick = function (event) {
-            var item = event.itemObject;
-            this._itemClick.call(this._callbackThisObj, item);
-        };
-        PageTurn.prototype.onPre = function () {
-            this._currentPage--;
-            this.onPageChange();
-        };
-        PageTurn.prototype.onNext = function () {
-            this._currentPage++;
-            this.onPageChange();
-        };
-        PageTurn.prototype.itemRenderer = function (index, item) {
-            this._itemRenderer.call(this._callbackThisObj, index, (this._currentPage - 1) * this._pageNum + index, item);
-        };
-        Object.defineProperty(PageTurn.prototype, "itemClick", {
-            set: function (value) {
-                this._itemClick = value;
-                if (value) {
-                    this._list.addEventListener(fairygui.ItemEvent.CLICK, this.onItemClick, this);
-                }
-                else {
-                    this._list.removeEventListener(fairygui.ItemEvent.CLICK, this.onItemClick, this);
-                }
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(PageTurn.prototype, "length", {
-            set: function (value) {
-                this._length = value;
-                if (this._length == 0) {
-                    this._totalPage = 1;
-                }
-                else {
-                    this._totalPage = Math.floor((this._length - 1) / this._pageNum + 1);
-                }
-                this.onPageChange();
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(PageTurn.prototype, "numItems", {
-            set: function (value) {
-                this._list.numItems = value;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(PageTurn.prototype, "currentPage", {
-            get: function () {
-                return this._currentPage;
-            },
-            set: function (value) {
-                this._currentPage = value;
-                this.onPageChange();
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(PageTurn.prototype, "totalPage", {
-            get: function () {
-                return this._totalPage;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(PageTurn.prototype, "pageNum", {
-            get: function () {
-                return this._pageNum;
-            },
-            set: function (value) {
-                this._pageNum = value;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        return PageTurn;
-    }());
-    gui.PageTurn = PageTurn;
-    __reflect(PageTurn.prototype, "gui.PageTurn");
-})(gui || (gui = {}));
 /**
  * Created by lxz on 2017/11/21.
  */
@@ -3905,6 +3918,191 @@ var gui;
     }());
     gui.ScrollRender = ScrollRender;
     __reflect(ScrollRender.prototype, "gui.ScrollRender");
+})(gui || (gui = {}));
+var gui;
+(function (gui) {
+    /**
+     * 简单的一个资源模块加载 可以用来加载视频
+     */
+    var SingleOvBase = (function (_super) {
+        __extends(SingleOvBase, _super);
+        function SingleOvBase(pkgName, resName, modal, center, loadingView) {
+            if (modal === void 0) { modal = true; }
+            if (center === void 0) { center = true; }
+            if (loadingView === void 0) { loadingView = null; }
+            var _this = _super.call(this, modal, center) || this;
+            _this._pkgName = pkgName;
+            _this._resName = resName;
+            _this.className = pkgName + "_" + resName;
+            if (fairygui.UIPackage.getByName(pkgName) == null) {
+                if (RES.getRes(pkgName) || RES.getRes(pkgName + "_fui")) {
+                    fairygui.UIPackage.addPackage(pkgName);
+                    _this.initUI(pkgName, resName);
+                }
+                else {
+                    if (RES.getGroupByName(pkgName)) {
+                        loadUtil.loadGroup(pkgName, loadingView, _this.loadResComplete, _this);
+                    }
+                    else {
+                        throw new Error("\u6CA1\u6709\u5BF9\u5E94\u7684" + pkgName + "\u8D44\u6E90\u7EC4");
+                    }
+                }
+            }
+            else {
+                _this.initUI(pkgName, resName);
+            }
+            return _this;
+        }
+        SingleOvBase.prototype.wxfullWindow = function (width, height) {
+            if (width === void 0) { width = 750; }
+            if (height === void 0) { height = 1334; }
+            // let w = document.body.clientWidth;
+            // let h = document.body.clientHeight;
+            if (!this._ui) {
+                return;
+            }
+            var clientHeight = height;
+            var clientWidth = width;
+            var w = gameTool.gameContentWH[0]; //游戏内容的长宽
+            var h = gameTool.gameContentWH[1]; //游戏内容的长宽
+            var perw = clientWidth / w; //宽的比例
+            var tempH = h * perw; //根据宽的比例求对应的高
+            var perH = clientHeight / h; //高的比例
+            var tempW = w * perH; //根据高的比例求对应的宽
+            if (tempH <= clientHeight && perw < perH) {
+                this._ui.setScale(perw, perw);
+            }
+            else if (tempW <= clientWidth && perH < perw) {
+                this._ui.setScale(perH, perH);
+            }
+            var sc = this._ui.scaleX; //缩放比例
+            if (sc * w != clientWidth) {
+                this._ui.width = clientWidth / sc;
+            }
+            if (sc * h != clientHeight) {
+                this._ui.height = clientHeight / sc;
+            }
+        };
+        SingleOvBase.prototype.dispose = function () {
+            gui.removeBindGuiProperty(this);
+            if (this._textList) {
+                var len = this._textList.length;
+                for (var i = 0; i < len; i++) {
+                    this._textList[i].dispose();
+                }
+                this._textList = null;
+            }
+            if (this._ivs) {
+                var len = this._ivs.length;
+                for (var i = 0; i < len; i++) {
+                    this._ivs[i].dispose();
+                }
+                this._ivs = null;
+            }
+            _super.prototype.dispose.call(this);
+        };
+        SingleOvBase.prototype.updateItemView = function (index) {
+            var args = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                args[_i - 1] = arguments[_i];
+            }
+            (_a = this._ivs[index]).update.apply(_a, args);
+            var _a;
+        };
+        SingleOvBase.prototype.setText = function (index, text) {
+            this._textList[index].text = text.toString();
+        };
+        SingleOvBase.prototype.getText = function (index) {
+            return this._textList[index].text;
+        };
+        SingleOvBase.prototype.getTextFiled = function (index) {
+            return this._textList[index];
+        };
+        SingleOvBase.prototype.onInit = function () {
+            if (fairygui.UIPackage.getByName(this._pkgName) == null || this._ui == null) {
+                return;
+            }
+            _super.prototype.onInit.call(this);
+        };
+        /******************************************************************/
+        SingleOvBase.prototype.initView = function () {
+            _super.prototype.initView.call(this);
+            this._textList = [];
+            this._ivs = [];
+            this.registerTexts(this._ui);
+        };
+        SingleOvBase.prototype.onClick = function (e) {
+            var name = e.currentTarget.name;
+            var pre = "btn";
+            var index = name.indexOf(pre);
+            if (index < 0) {
+                return;
+            }
+            index = parseInt(name.substr(pre.length));
+            switch (index) {
+                case 0:
+                    gui.remove(this);
+                    break;
+            }
+            this.clickHandler(index);
+        };
+        SingleOvBase.prototype.clickHandler = function (index) {
+        };
+        SingleOvBase.prototype.registerTexts = function (container) {
+            if (container == null) {
+                throw new Error("窗口不存在，不能注册按钮").message;
+            }
+            var childLen = container.numChildren;
+            for (var i = 0; i < childLen; i++) {
+                var child = container.getChildAt(i);
+                if (child instanceof fairygui.GTextField) {
+                    if (child.name.indexOf("text") > -1) {
+                        this._textList.push(child);
+                    }
+                }
+            }
+            this._textList.sort(this.onTextSort);
+        };
+        SingleOvBase.prototype.initUI = function (pkgName, resName) {
+            this._ui = fairygui.UIPackage.createObject(pkgName, resName).asCom;
+            //   this.resize();
+            this.onResize();
+            gui.bindGuiProperty(this, this._ui);
+            this.init();
+            this.addChild(this._ui);
+        };
+        SingleOvBase.prototype.onResize = function () {
+        };
+        /******************************************************************/
+        SingleOvBase.prototype.loadResComplete = function () {
+            var _this = this;
+            if (this.isComplete) {
+                return;
+            }
+            this.isComplete = true;
+            // 需要延迟处理gui包,res加载完组直接addPackage会再次调用res的加载导致报错
+            var k = egret.setTimeout(function () {
+                egret.clearTimeout(k);
+                _this._inited = false;
+                fairygui.UIPackage.addPackage(_this._pkgName);
+                _this.initUI(_this._pkgName, _this._resName);
+            }, this, 100);
+        };
+        SingleOvBase.prototype.onTextSort = function (t1, t2) {
+            var index1 = parseInt(t1.name.substr(4));
+            var index2 = parseInt(t2.name.substr(4));
+            if (index1 < index2) {
+                return -1;
+            }
+            if (index1 > index2) {
+                return 1;
+            }
+            return 0;
+        };
+        return SingleOvBase;
+    }(gui.BaseWindow));
+    gui.SingleOvBase = SingleOvBase;
+    __reflect(SingleOvBase.prototype, "gui.SingleOvBase");
 })(gui || (gui = {}));
 /**
  * Created by lxz on 2017/11/17.
@@ -7519,22 +7717,30 @@ var loadUtil;
                 RES.addEventListener(RES.ResourceEvent.GROUP_PROGRESS, this.onResourceProgress, this);
                 RES.addEventListener(RES.ResourceEvent.ITEM_LOAD_ERROR, this.onItemLoadError, this);
                 RES.loadGroup(this._groupName);
-                this.desGroup(this._groupName);
+                // this.desGroup(this._groupName);
             }
         };
+        /**
+         * 手机上的资源不能加载过多 不然的话会卡主 所以需要进行清理
+         * 清理的逻辑是
+         */
         Loader.prototype.desGroup = function (str) {
-            if (this.loadRes.indexOf(str) > -1 || str == "fish" || str == "xq") {
+            //如果是当前资源则不进行删除
+            if (this.loadRes.indexOf(str) > -1) {
                 return;
             }
             this.loadRes.push(str);
             for (var i = this.loadRes.length - 2; i >= 0; i--) {
-                if (RES.destroyRes(this.loadRes[i])) {
-                    if (fairygui.UIPackage.getByName(loadUtil.packName[this.loadRes[i]])) {
-                        fairygui.UIPackage.removePackage(fairygui.UIPackage.getByName(loadUtil.packName[this.loadRes[i]]).id);
+                //组的资源命名需要相同的前缀,不同前缀的资源进行删除
+                if (this.loadRes[i].indexOf(str) == -1 && str.indexOf(this.loadRes[i]) == -1) {
+                    if (RES.destroyRes(this.loadRes[i])) {
+                        if (fairygui.UIPackage.getByName(loadUtil.packName[this.loadRes[i]])) {
+                            fairygui.UIPackage.removePackage(fairygui.UIPackage.getByName(loadUtil.packName[this.loadRes[i]]).id);
+                        }
+                        this.loadRes.splice(i, 1);
                     }
-                    this.loadRes.splice(i, 1);
+                    ;
                 }
-                ;
             }
         };
         Loader.prototype.loadResource = function (path, dataFormat, complete, context) {
